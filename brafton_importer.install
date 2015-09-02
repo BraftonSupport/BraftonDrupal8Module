@@ -1,0 +1,63 @@
+<?php
+
+/**
+ * @file
+ *  The install file for the brafton_importer module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function brafton_importer_install() {
+  $new_node_type_info = array(
+    'name' => 'Brafton Article 4',
+    'type' => 'brafton_article4',
+    'description' => 'Articles from your Brafton Feed.',
+    'has_title' => TRUE,
+  );
+
+  // Check if node type exists. If not, create it.
+  if ( \Drupal\node\Entity\NodeType::load('brafton_article4') == FALSE ) {
+    $new_node_type = \Drupal\node\Entity\NodeType::create($new_node_type_info);
+    $new_node_type->save();
+  }
+
+  // Defines fields
+  $field = array(
+    'field_name' => 'field_brafton_image',
+    'entity_type' => 'node',
+    'type' => 'image',
+  );
+
+  // Binds fields to article type.
+  $instance = array(
+    'field_name' => 'field_brafton_image',
+    'bundle' => 'brafton_article4',
+    'label' => 'Featured Image',
+    'entity_type' => 'node',
+    'description' => t( 'Upload an image to go with this article.' ),
+  );
+/*
+
+  if ( \Drupal::entityManager()->getStorage('field_storage_config')->load('field_brafton_image') == FALSE ) {
+    \Drupal::entityManager()->getStorage('field_storage_config')->create($field)->save();
+  }
+  if ( \Drupal::entityManager()->getStorage('field_config')->load('field_brafton_image') == FALSE ) {
+    \Drupal::entityManager()->getStorage('field_config')->create($instance)->save();
+  }
+
+
+  // Display fields in forms. 'entity_get_form_display' is deprecated.
+  entity_get_form_display('node', 'brafton_article4', 'default')
+  ->setComponent('field_brafton_image', array(
+    'type' => 'image',
+    'settings' => array(
+    ),
+    'weight' => 5,
+  ))
+  ->save();
+*/
+}
+
+
+?>

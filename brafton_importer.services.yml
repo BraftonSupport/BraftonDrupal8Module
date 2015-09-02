@@ -1,0 +1,3 @@
+services:
+  brafton_importer.brafton_importer_service:
+    class: Drupal\brafton_importer\BraftonImporterService

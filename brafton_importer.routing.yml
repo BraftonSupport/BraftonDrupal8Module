@@ -1,0 +1,14 @@
+brafton_importer.content:
+  path: '/brafton'
+  defaults:
+    _controller: '\Drupal\brafton_importer\Controller\BraftonImporterController::content'
+    _title: 'Brafton Importer page'
+  requirements:
+    _permission: 'access content'
+brafton_importer.form:
+  path: '/brafton/form'
+  defaults:
+    _form: '\Drupal\brafton_importer\Form\BraftonForm'
+    _title: 'Brafton Form'
+  requirements:
+    _permission: 'access content'
