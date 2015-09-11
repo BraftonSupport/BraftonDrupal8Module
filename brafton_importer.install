@@ -9,44 +9,200 @@
  * Implements hook_install().
  */
 function brafton_importer_install() {
-  $new_node_type_info = array(
-    'name' => 'Brafton Article 4',
-    'type' => 'brafton_article4',
-    'description' => 'Articles from your Brafton Feed.',
-    'has_title' => TRUE,
-  );
 
   // Check if node type exists. If not, create it.
-  if ( \Drupal\node\Entity\NodeType::load('brafton_article4') == FALSE ) {
-    $new_node_type = \Drupal\node\Entity\NodeType::create($new_node_type_info);
-    $new_node_type->save();
+  if ( \Drupal\node\Entity\NodeType::load('brafton_article5') == FALSE ) {
+    // Provides info about the Brafton content type.
+    $brafton_node_type_info = array(
+      'name' => t('Brafton Article 5'),
+      'type' => 'brafton_article5',
+      'description' => t('Articles from your Brafton Feed.'),
+      'has_title' => TRUE,
+    );
+
+    $brafton_node_type = \Drupal\node\Entity\NodeType::create($brafton_node_type_info);
+    $brafton_node_type->save();
   }
 
-  // Defines fields
-  $field = array(
-    'field_name' => 'field_brafton_image',
-    'entity_type' => 'node',
-    'type' => 'image',
+  // Check if taxonomy exists. If not, create it.
+  if ( \Drupal\taxonomy\Entity\Vocabulary::load('brafton_tax') == FALSE ) {
+    // Defines taxonomy info.
+    $brafton_vocab_info = array(
+      'name' => t('Brafton Categories'),
+      'vid' => 'brafton_tax',
+      'description' => t('Categories for Brafton articles'),
+    );
+
+    // Creates new taxonomy.
+    $brafton_tax = \Drupal\taxonomy\Entity\Vocabulary::create($brafton_vocab_info);
+    $brafton_tax->save();
+  }
+
+
+
+
+  // Info to defines fields
+  $fields = array(
+    'field_brafton_image' => array(
+      'field_name' => 'field_brafton_image',
+      'entity_type' => 'node',
+      'type' => 'image',
+    ),
+    'field_brafton_id' => array(
+      'field_name' => 'field_brafton_id',
+      'entity_type' => 'node',
+      'type' => 'integer',
+    ),
+    'field_brafton_body' => array(
+      'field_name' => 'field_brafton_body',
+      'entity_type' => 'node',
+      'type' => 'text_with_summary',
+    ),
+    'field_brafton_term' => array(
+      'field_name' => 'field_brafton_term',
+      'entity_type' => 'node',
+      'type' => 'entity_reference',
+      'settings' => array(
+        'target_type' => 'taxonomy_term',
+      ),
+    ),
   );
 
-  // Binds fields to article type.
-  $instance = array(
-    'field_name' => 'field_brafton_image',
-    'bundle' => 'brafton_article4',
-    'label' => 'Featured Image',
-    'entity_type' => 'node',
-    'description' => t( 'Upload an image to go with this article.' ),
+  // Info to binds fields to article type.
+  $instances = array(
+    'field_brafton_image' => array(
+      'field_name' => 'field_brafton_image',
+      'bundle' => 'brafton_article5',
+      'label' => t('Featured Image'),
+      'entity_type' => 'node',
+      'description' => t( 'Upload an image to go with this article.' ),
+    ),
+    'field_brafton_id' => array(
+      'field_name' => 'field_brafton_id',
+      'bundle' => 'brafton_article5',
+      'label' => t('Brafton ID'),
+      'entity_type' => 'node',
+      'description' => t('The unique Brafton ID'),
+    ),
+    'field_brafton_body' => array(
+      'field_name' => 'field_brafton_body',
+      'bundle' => 'brafton_article5',
+      'label' => t('Body'),
+      'entity_type' => 'node',
+      'description' => t('The content of the article'),
+    ),
+    'field_brafton_term' => array(
+      'field_name' => 'field_brafton_term',
+      'bundle' => 'brafton_article5',
+      'label' => t('Categories'),
+      'entity_type' => 'node',
+      'description' => t('The category or tags of the article'),
+      'settings' => array(
+        'handler' => 'default:taxonomy_term',
+        'handler_settings' => array(
+          'target_bundles' => array(
+            'brafton_tax' => 'brafton_tax'
+          ),
+          'auto_create' => 'true'
+        ),
+      ),
+    ),
   );
+
+  // Create the fields
+  foreach ($fields as $field) {
+    if ( empty(\Drupal::entityManager()->getStorage('field_storage_config')->loadByProperties(array('field_name' => $field['field_name']))) ) {
+      \Drupal::entityManager()->getStorage('field_storage_config')->create($field)->save();
+    }
+  }
+
+  // Create the field bindings
+  foreach ($instances as $instance) {
+    if ( empty(\Drupal::entityManager()->getStorage('field_config')->loadByProperties(array('field_name' => $instance['field_name']))) ) {
+      \Drupal::entityManager()->getStorage('field_config')->create($instance)->save();
+    }
+  }
+
 /*
-
-  if ( \Drupal::entityManager()->getStorage('field_storage_config')->load('field_brafton_image') == FALSE ) {
+  if ( empty(\Drupal::entityManager()->getStorage('field_storage_config')->loadByProperties(array('field_name' => 'field_brafton_image'))) ) {
     \Drupal::entityManager()->getStorage('field_storage_config')->create($field)->save();
   }
-  if ( \Drupal::entityManager()->getStorage('field_config')->load('field_brafton_image') == FALSE ) {
+  if ( empty(\Drupal::entityManager()->getStorage('field_config')->loadByProperties(array('field_name' => 'field_brafton_image'))) ) {
     \Drupal::entityManager()->getStorage('field_config')->create($instance)->save();
   }
+*/
+
+  // Displays field in form edit view.
+  // deprecated
+  entity_get_form_display('node', 'brafton_article5', 'default')
+    ->setComponent('field_brafton_image', array(
+      'type' => 'image_image',
+    ))
+    ->save();
+
+  entity_get_form_display('node', 'brafton_article5', 'default')
+    ->setComponent('field_brafton_id', array(
+      'type' => 'number',
+    ))
+    ->save();
+
+  entity_get_form_display('node', 'brafton_article5', 'default')
+    ->setComponent('field_brafton_body', array(
+      'type' => 'text_textarea_with_summary',
+    ))
+    ->save();
+
+  entity_get_form_display('node', 'brafton_article5', 'default')
+    ->setComponent('field_brafton_term', array(
+      'type' => 'entity_reference_autocomplete_tags',
+    ))
+    ->save();
+
+// Displays field in node view.
+    // deprecated
+  entity_get_display('node', 'brafton_article5', 'default')
+    ->setComponent('field_brafton_image', array(
+      'type' => 'image',
+    ))
+    ->save();
+
+  entity_get_display('node', 'brafton_article5', 'default')
+    ->setComponent('field_brafton_id', array(
+      'type' => 'number_integer',
+    ))
+    ->save();
+
+  entity_get_display('node', 'brafton_article5', 'default')
+    ->setComponent('field_brafton_body', array(
+      'type' => 'text_default',
+    ))
+    ->save();
+
+  entity_get_display('node', 'brafton_article5', 'default')
+    ->setComponent('field_brafton_term', array(
+      'type' => 'entity_reference_label',
+    ))
+    ->save();
+
+/*
+  $display_array = array(
+    'field_name' => 'field_brafton_image',
+    'type' => 'image',
+
+  );
+
+  $display = \Drupal::entityManager()->getStorage('entity_view_display')->loadByProperties(array('field_name' => 'field_brafton_image'));
+
+  $component = $display->getComponent('field_brafton_image');
 
 
+  $display->setComponent('field_brafton_image', array(
+    'type' => 'image',
+    'settings' => array(),
+    ) + $component)->save();
+*/
+
+/*
   // Display fields in forms. 'entity_get_form_display' is deprecated.
   entity_get_form_display('node', 'brafton_article4', 'default')
   ->setComponent('field_brafton_image', array(
@@ -57,7 +213,11 @@ function brafton_importer_install() {
   ))
   ->save();
 */
+
+
+
+
 }
 
-
 ?>
+

@@ -69,6 +69,9 @@ class BraftonForm extends ConfigFormBase {
     */
 
 
+
+
+
     /*
     // Submit button. Redundant b/c of submitForm() function.
     $form['show'] = array(
@@ -76,6 +79,23 @@ class BraftonForm extends ConfigFormBase {
       '#value' => $this->t('Submit')
     );
     */
+
+  //  $output = \Drupal::entityManager()->getStorage('entity_view_display')->loadByProperties(array('targetEntityType' => 'node', 'bundle' => 'brafton_article4'));
+  //  $output = \Drupal::entityManager()->getStorage('entity_view_display')->loadByProperties(array('field_name' => 'field_brafton_image'));
+  //  $output = entity_get_form_display('node', 'brafton_article4', 'default');
+  //  debug($output);
+
+/*
+  \Drupal::entityManager()->getStorage('entity_view_display')
+  ->setComponent('field_brafton_image', array(
+      'type' => 'image',
+      'settings' => array(
+      ),
+      'weight' => 5,
+*/
+
+
+
 
     return $form;
   }
@@ -103,6 +123,21 @@ class BraftonForm extends ConfigFormBase {
     drupal_set_message($this->t('Your email address is @email', array('@email' => $form_state->getValue('email'))));
 
     $this->braftonImporterService->createBraftonArticle();
+
+
+
+
+  $brafton_vocab_info = array(
+    'name' => t('Brafton Categories'),
+    'vid' => 'brafton_tax',
+    'description' => t('Categories for Brafton articles'),
+  );
+
+  // Creates new taxonomy.
+  \Drupal\taxonomy\Entity\Vocabulary::create($brafton_vocab_info)->save();
+
+
+
 
     return parent::submitForm($form, $form_state);
   }

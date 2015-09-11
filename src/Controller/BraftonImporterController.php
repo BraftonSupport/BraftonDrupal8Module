@@ -37,6 +37,19 @@ class BraftonImporterController extends ControllerBase {
     $form = \Drupal::formBuilder()->getForm('Drupal\brafton_importer\Form\BraftonForm');
 
     return $form;
+
+
+/*
+    $test = \Drupal::entityManager()->getStorage('field_storage_config')->load('field_brafton_image');
+    $test2 = 'yeah buddy';
+    debug($test);
+    return array(
+      '#markup' => t('Hello @value', array(
+        '@value' => $test
+      ))
+    );
+*/
+
     /*
     return array(
       '#type' => 'markup',
