@@ -127,18 +127,6 @@ class BraftonForm extends ConfigFormBase {
 
 
 
-  $brafton_vocab_info = array(
-    'name' => t('Brafton Categories'),
-    'vid' => 'brafton_tax',
-    'description' => t('Categories for Brafton articles'),
-  );
-
-  // Creates new taxonomy.
-  \Drupal\taxonomy\Entity\Vocabulary::create($brafton_vocab_info)->save();
-
-
-
-
     return parent::submitForm($form, $form_state);
   }
 
