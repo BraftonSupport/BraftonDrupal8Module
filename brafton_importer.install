@@ -28,6 +28,8 @@ class brafton_importer_install {
 
   /**
    *  This creates the brafton node type.
+   *
+   * @return void
    */
   function create_brafton_node_type() {
 
@@ -47,6 +49,11 @@ class brafton_importer_install {
 
   }
 
+  /**
+   *  This creates the brafton taxonomy.
+   *
+   * @return void
+   */
   function create_brafton_tax() {
     // Check if taxonomy exists. If not, create it.
     if ( \Drupal\taxonomy\Entity\Vocabulary::load('brafton_tax') == FALSE ) {
@@ -63,6 +70,11 @@ class brafton_importer_install {
     }
   }
 
+  /**
+   *  This creates the fields for the brafton node type.
+   *
+   * @return void
+   */
   function create_brafton_node_fields() {
     // Info to defines fields
     $fields = array(
@@ -100,7 +112,11 @@ class brafton_importer_install {
 
   }
 
-
+  /**
+   *  This binds the fields to the brafton node type.
+   *
+   * @return void
+   */
   function bind_brafton_node_fields_to_node_type() {
     // Info to binds fields to article type.
     $instances = array(
@@ -152,8 +168,10 @@ class brafton_importer_install {
   }
 
 
-  /*
+  /**
    * Displays field in form edit view. Deprecated.
+   *
+   * @return void
    */
   function display_brafton_fields_in_form_view() {
 
@@ -171,113 +189,30 @@ class brafton_importer_install {
         ))
         ->save();
     }
-/*
-    entity_get_form_display('node', 'brafton_article', 'default')
-      ->setComponent('field_brafton_image', array(
-        'type' => 'image_image',
-      ))
-      ->save();
-
-    entity_get_form_display('node', 'brafton_article', 'default')
-      ->setComponent('field_brafton_id', array(
-        'type' => 'number',
-      ))
-      ->save();
-
-    entity_get_form_display('node', 'brafton_article', 'default')
-      ->setComponent('field_brafton_body', array(
-        'type' => 'text_textarea_with_summary',
-      ))
-      ->save();
-
-    entity_get_form_display('node', 'brafton_article', 'default')
-      ->setComponent('field_brafton_term', array(
-        'type' => 'entity_reference_autocomplete_tags',
-      ))
-      ->save();
-  */
   }
 
-/*
- * Displays field in node view. Deprecated.
- */
-function display_brafton_fields_in_node_view() {
+  /**
+   * Displays field in node view. Deprecated.
+   *
+   * @return void
+   */
+  function display_brafton_fields_in_node_view() {
 
-  $field_node_view_types = array(
-    'field_brafton_image' => 'image',
-    'field_brafton_id' => 'number_integer',
-    'field_brafton_body' => 'text_default',
-    'field_brafton_term' => 'entity_reference_label'
-  );
+    $field_node_view_types = array(
+      'field_brafton_image' => 'image',
+      'field_brafton_id' => 'number_integer',
+      'field_brafton_body' => 'text_default',
+      'field_brafton_term' => 'entity_reference_label'
+    );
 
-  foreach($field_node_view_types as $field => $field_value) {
-    entity_get_display('node', 'brafton_article', 'default')
-      ->setComponent($field, array(
-        'type' => $field_value,
-      ))
-      ->save();
+    foreach($field_node_view_types as $field => $field_value) {
+      entity_get_display('node', 'brafton_article', 'default')
+        ->setComponent($field, array(
+          'type' => $field_value,
+        ))
+        ->save();
+    }
   }
-/*
-  entity_get_display('node', 'brafton_article', 'default')
-    ->setComponent('field_brafton_image', array(
-      'type' => 'image',
-    ))
-    ->save();
-
-  entity_get_display('node', 'brafton_article', 'default')
-    ->setComponent('field_brafton_id', array(
-      'type' => 'number_integer',
-    ))
-    ->save();
-
-  entity_get_display('node', 'brafton_article', 'default')
-    ->setComponent('field_brafton_body', array(
-      'type' => 'text_default',
-    ))
-    ->save();
-
-  entity_get_display('node', 'brafton_article', 'default')
-    ->setComponent('field_brafton_term', array(
-      'type' => 'entity_reference_label',
-    ))
-    ->save();
-*/
-}
-
-
-/*
-  $display_array = array(
-    'field_name' => 'field_brafton_image',
-    'type' => 'image',
-
-  );
-
-  $display = \Drupal::entityManager()->getStorage('entity_view_display')->loadByProperties(array('field_name' => 'field_brafton_image'));
-
-  $component = $display->getComponent('field_brafton_image');
-
-
-  $display->setComponent('field_brafton_image', array(
-    'type' => 'image',
-    'settings' => array(),
-    ) + $component)->save();
-*/
-
-/*
-  // Display fields in forms. 'entity_get_form_display' is deprecated.
-  entity_get_form_display('node', 'brafton_article4', 'default')
-  ->setComponent('field_brafton_image', array(
-    'type' => 'image',
-    'settings' => array(
-    ),
-    'weight' => 5,
-  ))
-  ->save();
-*/
-
-
-
-
 }
 
 $install = new brafton_importer_install();
