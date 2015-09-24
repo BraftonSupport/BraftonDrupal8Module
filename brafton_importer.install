@@ -85,6 +85,7 @@ class brafton_importer_install {
         'field_name' => 'field_brafton_term',
         'entity_type' => 'node',
         'type' => 'entity_reference',
+        'cardinality' => -1,
         'settings' => array(
           'target_type' => 'taxonomy_term',
         ),

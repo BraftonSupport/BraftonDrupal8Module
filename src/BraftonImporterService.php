@@ -27,60 +27,48 @@ class BraftonImporterService {
  /**
    * Creates a Brafton article.
    */
-  public function createBraftonArticle() {
+  public static function createBraftonArticle() {
 
-    $API_key = 'a3d8aaf8-be65-48bf-baf6-aabd4afeb8ca';
-    $API_domain = 'http://api.contentlead.com';
+    $config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
+    $API_key = $config->get('brafton_importer.brafton_api_key');
+    $API_domain = $config->get('brafton_importer.brafton_api_root');
+
     $connection = new ApiHandler($API_key, $API_domain);
 
     $article_array = $connection->getNewsHTML();
-//    echo '<pre>';
-//    var_dump($article_array[0]->getHeadline());
-//    echo '</pre>';
 
-    $article = $article_array[0];
-    $title = $article->getHeadline();
-    $body = $article->getText();
-    $summary = $article->getExtract();
-    $image = \Drupal\brafton_importer\BraftonImporterService::get_image_attributes($article);
-    $brafton_id = $article->getId();
-//    $x = system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE );
+    foreach($article_array as $article) {
 
-    $new_node_info = array(
-      'type' => 'brafton_article',
-      'title' => $title,
-      'body' => array(
-        'value' => $body,
-        'summary' => $summary,
-        'format' => 'full_html'
-      ),
-      'field_featured_image' => system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE ),
-      'field_brafton_id' => $brafton_id
-    );
-/*
-                $types = array(
-                    'body'  => 'body',
-                    'image' => 'field_brafton_image',
-                    'tax'   => 'field_brafton_term'
-                );
-*/
+      // $results = $connection->query("SELECT uid, name FROM {users_field_data} WHERE status=1");
 
-    $new_node = \Drupal\node\Entity\Node::create($new_node_info);
+      // $db_connection = \Drupal\Core\Database\Database::getConnection();
+      // $result = $db_connection->query("SELECT ")
 
-   // Deprecated
-  //  $new_node = entity_create('node', $new_node_info);
+      $categories = \Drupal\brafton_importer\BraftonImporterService::set_article_categories($article);
+      $title = $article->getHeadline();
+      $body = $article->getText();
+      $summary = $article->getExtract();
+      $image = \Drupal\brafton_importer\BraftonImporterService::get_image_attributes($article);
+      $brafton_id = $article->getId();
 
+      $new_node_info = array(
+        'type' => 'brafton_article',
+        'title' => $title,
+        'field_brafton_body' => array(
+          'value' => $body,
+          'summary' => $summary,
+          'format' => 'full_html'
+        ),
+        'field_brafton_image' => system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE ),
+        'field_brafton_id' => $brafton_id,
+        'field_brafton_term' => $categories,
+      );
 
-     //              $new_node->{$types['image']}[ $new_node->language ][0] = ( array ) system_retrieve_file( $image['url'],NULL,TRUE,FILE_EXISTS_REPLACE );
-     //                       $new_node->{$types['image']}[ $new_node->language ][0]['alt'] = $image['alt'];
-     //                       $new_node->{$types['image']}[ $new_node->language ][0]['title'] = $image['title'];
+      $new_node = \Drupal\node\Entity\Node::create($new_node_info);
+      $new_node->field_brafton_image->alt = $image['alt'];
 
-
-    $new_node->save();
-
-
-
-
+      $new_node->save();
+    }
 
 
 
@@ -89,7 +77,7 @@ class BraftonImporterService {
   /**
    * Gets image information from XML feed
    */
-  public function get_image_attributes( $articleobj,$feedtype = NULL,$photoClient = NULL,$photos = NULL,$id = NULL )  {
+  public static function get_image_attributes( $articleobj,$feedtype = NULL,$photoClient = NULL,$photos = NULL,$id = NULL )  {
 
     if( $feedtype == 'video' )  {
       $thisPhotos = $photos->ListForArticle( $id,0,100 );
@@ -125,6 +113,48 @@ class BraftonImporterService {
     }
 
   }
+
+  /**
+   * Imports categories for an article.
+   */
+  public static function set_article_categories($article) {
+    $categories = $article->getCategories();
+
+    $vocab = 'brafton_tax';
+
+    $cat_array = array();
+
+    foreach($categories as $category) {
+      $name = $category->getName();
+
+      $existing_terms = taxonomy_term_load_multiple_by_name($name, $vocab);
+
+
+
+      // If term does not exist, create it.
+      if ( empty($existing_terms) ) {
+        // Creates new taxonomy term.
+        $tax_info = array(
+          'name' => $name,
+          'vid' => $vocab,
+        );
+        $brafton_tax_term = \Drupal\taxonomy\Entity\Term::create($tax_info);
+        $brafton_tax_term->save();
+        $term_vid = $brafton_tax_term->id();
+      }
+      else {
+
+        $term_vid = reset($existing_terms)->id();
+
+
+      }
+      $cat_array[] = $term_vid;
+    }
+    // returns array of unique term ids (vid).
+    return $cat_array;
+
+  }
+
 
 }
 
