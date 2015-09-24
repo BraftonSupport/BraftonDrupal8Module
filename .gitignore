@@ -1,0 +1,2 @@
+#Ignore certain files used for dev only
+brafton_importer.install.php
