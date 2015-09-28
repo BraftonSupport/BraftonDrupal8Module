@@ -16,22 +16,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class BraftonForm extends ConfigFormBase {
 
 
-  static function createBraftonArticle2(array $form, FormStateInterface $form_state) {
+  static function manual_import_articles(array $form, FormStateInterface $form_state) {
 
-    $new_node_info = array(
-      'type' => 'brafton_article',
-      'title' => 'ok',
-      'field_brafton_body' => array(
-        'value' => 'this is the body',
-        'summary' => 'excerpt yeah',
-        'format' => 'full_html',
-      ),
-    );
-
-    $new_node = \Drupal\node\Entity\Node::create($new_node_info);
-
-
-    $new_node->save();
+    $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
+    $article_loader->import_articles();
 
   }
 
@@ -78,6 +66,7 @@ class BraftonForm extends ConfigFormBase {
     $config = $this->config('brafton_importer.settings');
 
 
+
     $connection = \Drupal\Core\Database\Database::getConnection();
     $results = $connection->query("SELECT uid, name FROM {users_field_data} WHERE status=1");
     $user_array = $results->fetchAllKeyed();
@@ -92,11 +81,20 @@ class BraftonForm extends ConfigFormBase {
 
     // General Options
     $form['brafton_general_options'] = array(
-      '#type' => 'fieldset',
+      '#type' => 'details',
       '#title' => 'General Options',
-      '#collapsible' => true,
-      '#collapsed' => true,
       '#description' => t('Configure the Brafton Importer here.'),
+    );
+
+    $form['brafton_general_options']['brafton_general_switch'] = array(
+      '#type' => 'radios',
+      '#title' => t('Master Importer Status'),
+      '#description' => t('Turn the importer on or off globally.'),
+      '#options' => array(
+        'on' => t('On'),
+        'off' => t('Off'),
+      ),
+      '#default_value' => $config->get('brafton_importer.brafton_general_switch'),
     );
 
     $form['brafton_general_options']['brafton_feed_type'] = array(
@@ -130,27 +128,26 @@ class BraftonForm extends ConfigFormBase {
       '#default_value' =>$config->get('brafton_importer.brafton_author'),
       '#prefix' => '<h2>Import Options</h2>',
     );
-    $form['brafton_general_options']['brafton_import_date'] = array(
-      '#type' => 'select',
-      '#title' => t( 'Import Date' ),
+    $form['brafton_general_options']['brafton_publish_date'] = array(
+      '#type' => 'radios',
+      '#title' => t( 'Publish Date' ),
       '#description' => t( 'The date that the content is marked as having been published.' ),
       '#options' => array(
         'published' => 'Published Date',
         'created' => 'Created Date',
         'lastmodified' => 'Last Modified Date',
       ),
-      '#default_value' => $config->get('brafton_importer.brafton_import_date'),
+      '#default_value' => $config->get('brafton_importer.brafton_publish_date'),
     );
-    $form['brafton_general_options']['brafton_comments'] = array(
-      '#type' => 'select',
-      '#title' => t( 'Enable Comments?' ),
-      '#description' => t( 'Enable, Hide, or Disable Comments' ),
+    $form['brafton_general_options']['brafton_category_switch'] = array(
+      '#type' => 'radios',
+      '#title' => t('Brafton Categories'),
+      '#description' => t('Use Brafton categories or not.'),
       '#options' => array(
-        0 => 'Disabled',
-        1 => 'Hidden',
-        2 => 'Enabled',
+        'on' => t('On'),
+        'off' => t('Off'),
       ),
-      '#default_value' => $config->get('brafton_importer.brafton_comments'),
+      '#default_value' => $config->get('brafton_importer.brafton_category_switch'),
     );
     $form['brafton_general_options']['brafton_overwrite'] = array(
       '#type' => 'checkbox',
@@ -171,10 +168,8 @@ class BraftonForm extends ConfigFormBase {
     // Article Options
 
     $form['brafton_article_options'] = array(
-      '#type' => 'fieldset',
+      '#type' => 'details',
       '#title' => 'Article Options',
-      '#collapsible' => true,
-      '#collapsed' => true,
     );
     $form['brafton_article_options']['brafton_api_key'] = array(
       '#type' => 'textfield',
@@ -189,10 +184,9 @@ class BraftonForm extends ConfigFormBase {
     // Manual Buttons
 
     $form['brafton_manual_options'] = array(
-      '#type' => 'fieldset',
+      '#type' => 'details',
+      '#open' => TRUE,
       '#title' => 'Manual Control & Archive Uploads',
-      '#collapsible' => true,
-      '#collapsed' => true,
     );
     $form['brafton_manual_options']['brafton_run_importer'] = array(
       '#type' => 'submit',
@@ -206,7 +200,7 @@ class BraftonForm extends ConfigFormBase {
       '#type' => 'submit',
       '#title' => 'Run Article Importer 2',
       '#value' => 'Run Article Importer 2',
-      '#submit' => array('$this->braftonImporterService::createBraftonArticle'),
+      '#submit' => array('::manual_import_articles'),
    //   '#submit' => array('::createBraftonArticle2'),
 
     );

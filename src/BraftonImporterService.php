@@ -129,8 +129,6 @@ class BraftonImporterService {
 
       $existing_terms = taxonomy_term_load_multiple_by_name($name, $vocab);
 
-
-
       // If term does not exist, create it.
       if ( empty($existing_terms) ) {
         // Creates new taxonomy term.
