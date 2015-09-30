@@ -9,6 +9,9 @@ namespace Drupal\brafton_importer\Model;
 
 use Drupal\brafton_importer\APIClientLibrary\ApiHandler;
 
+/**
+ * The parent class for loading any Brafton XML feed.
+ */
 class BraftonFeedLoader {
     //put your properties here
  //   protected $feed;
@@ -16,6 +19,11 @@ class BraftonFeedLoader {
     protected $API_key;
     protected $API_domain;
 
+    /**
+     * Constructor method: Sets initial properties when BraftonFeedLoader objectg is instantiated.
+     *
+     * @return void
+     */
     public function __construct(){
         //use this function to get and set all need properties
         $this->brafton_config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
@@ -23,21 +31,29 @@ class BraftonFeedLoader {
         $this->API_domain = $this->brafton_config->get('brafton_importer.brafton_api_root');
     }
 
+    /**
+     * Method for loading feed. Because so basic, perhaps it should be property?
+     *
+     * @return object $feed of class ApiHandler
+     */
     public function load_feed(){
-        //method for loading the feed itself
-
         $feed = new ApiHandler($this->API_key, $this->API_domain);
 
         return $feed;
     }
 
+    // Placeholder
     public function upload_image(){
 
     }
 
 
     /**
-    * Gets image information from XML feed
+    * Gets image information from XML feed. Copied from Drupal 7 importer.
+    *
+    * @param object $articleobj The individual article info from XML
+    *
+    * @return array $image_info containing image details such as url.
     */
     public function get_image_attributes( $articleobj,$feedtype = NULL,$photoClient = NULL,$photos = NULL,$id = NULL )  {
 
@@ -76,6 +92,13 @@ class BraftonFeedLoader {
 
     }
 
+    /**
+     * Checks whether a node with the same brafton ID exists in drupal database.
+     *
+     * @param int $brafton_id The Brafton ID.
+     *
+     * @return array $nids An array of node ids (nids) that have matching Brafton Id.
+     */
     public function brafton_post_exists($brafton_id) {
       $query = \Drupal::entityQuery('node')
         ->condition('field_brafton_id', $brafton_id);
@@ -83,6 +106,13 @@ class BraftonFeedLoader {
       return $nids;
     }
 
+    /**
+     * Gets the publish date based on chosen config
+     *
+     * @param object $article An individual article from the XML feed
+     *
+     * @return string $date The date in string form.
+     */
     public function get_publish_date($article) {
       $date_setting = $this->brafton_config->get('brafton_importer.brafton_publish_date');
       switch($date_setting) {
@@ -101,6 +131,13 @@ class BraftonFeedLoader {
       return $date;
     }
 
+    /**
+     *  Gets the author of the article based on configs.
+     *
+     * @param object $article An individual article from the XML feed
+     *
+     * @return int $author_id The drupal user ID for the author.
+     */
     public function get_author($article) {
       $author_id = $this->brafton_config->get('brafton_importer.brafton_author');
       // static existing drupal user chosen.

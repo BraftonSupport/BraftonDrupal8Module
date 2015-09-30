@@ -11,45 +11,27 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-
-
+/**
+ * Class for Brafton admin form.
+ */
 class BraftonForm extends ConfigFormBase {
 
-
-  static function manual_import_articles(array $form, FormStateInterface $form_state) {
-
+  /**
+   * Manually imports articles
+   *
+   * @return void
+   */
+  static function manual_import_articles() {
     $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
     $article_loader->import_articles();
-
   }
-
-
-
-
-  // For calling Service
-  protected $braftonImporterService;
-
-  /**
-   * Class constructor
-   */
-  public function __construct($braftonImporterService) {
-    $this->braftonImporterService = $braftonImporterService;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('brafton_importer.brafton_importer_service')
-    );
-  }
-  // End calling service
 
   /**
    * {@inheritdoc}
    *
    * New method to Drupal 8. Returns machine name of form.
+   *
+   * @return string The machine name of form.
    */
   public function getFormId() {
     return 'brafton_form';
@@ -59,13 +41,15 @@ class BraftonForm extends ConfigFormBase {
    * {@inheritdoc}
    *
    * Similar to Drupal 7. Builds up form.
+   *
+   * @param array $form The form object
+   * @param FormStateInterface $form_state The FormStateInterface object
+   *
+   * @return array $form The build up form object
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildForm($form, $form_state);
-
     $config = $this->config('brafton_importer.settings');
-
-
 
     $connection = \Drupal\Core\Database\Database::getConnection();
     $results = $connection->query("SELECT uid, name FROM {users_field_data} WHERE status=1");
@@ -188,66 +172,20 @@ class BraftonForm extends ConfigFormBase {
       '#open' => TRUE,
       '#title' => 'Manual Control & Archive Uploads',
     );
-    $form['brafton_manual_options']['brafton_run_importer'] = array(
-      '#type' => 'submit',
-      '#title' => 'Run Article Importer',
-      '#value' => 'Run Article Importer',
-      '#submit' => array('\Drupal\brafton_importer\BraftonImporterService::createBraftonArticle'),
-   //   \Drupal::service('brafton_importer.brafton_importer_service')->createBraftonArticle();
-     // '#submit' => array('::createBraftonArticle'),
-    );
     $form['brafton_manual_options']['brafton_run_importer2'] = array(
       '#type' => 'submit',
       '#title' => 'Run Article Importer 2',
       '#value' => 'Run Article Importer 2',
       '#submit' => array('::manual_import_articles'),
-   //   '#submit' => array('::createBraftonArticle2'),
-
     );
-
-/*
-    $form['manual_button'] = array(
-      '#type' => 'submit',
-      '#title' => 'Run article importer',
-      '#value' => 'Run article importer',
-      '#submit' => $this->braftonImporterService->createBraftonArticle()
-    );
-*/
-
-
-
-
-
-/*
-    // Submit button. Redundant b/c of submitForm() function.
-    $form['show'] = array(
-      '#type' => 'submit',
-      '#value' => $this->t('Submit')
-    );
-*/
-
-  //  $output = \Drupal::entityManager()->getStorage('entity_view_display')->loadByProperties(array('targetEntityType' => 'node', 'bundle' => 'brafton_article4'));
-  //  $output = \Drupal::entityManager()->getStorage('entity_view_display')->loadByProperties(array('field_name' => 'field_brafton_image'));
-  //  $output = entity_get_form_display('node', 'brafton_article4', 'default');
-  //  debug($output);
-
-/*
-  \Drupal::entityManager()->getStorage('entity_view_display')
-  ->setComponent('field_brafton_image', array(
-      'type' => 'image',
-      'settings' => array(
-      ),
-      'weight' => 5,
-*/
-
-
-
 
     return $form;
   }
 
   /**
    * {@inheritdoc}
+   *
+   * Adds additional validation of .com email address.
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     if (strpos($form_state->getValue('email'), '.com') === FALSE) {
@@ -260,6 +198,8 @@ class BraftonForm extends ConfigFormBase {
 
   /**
    * {@inheritdoc}
+   *
+   * Sets the admin configs for each field.
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('brafton_importer.settings');
@@ -279,9 +219,6 @@ class BraftonForm extends ConfigFormBase {
   //  drupal_set_message($this->t('Your email address is @email', array('@email' => $form_state->getValue('email'))));
 
    // $this->braftonImporterService->createBraftonArticle();
-
-
-
 
     return parent::submitForm($form, $form_state);
   }

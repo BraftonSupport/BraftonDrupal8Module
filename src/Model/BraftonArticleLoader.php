@@ -7,14 +7,27 @@
 
 namespace Drupal\brafton_importer\Model;
 
+/**
+ * The class for articles. Child of BraftonFeedLoader.
+ */
 class BraftonArticleLoader extends BraftonFeedLoader{
 
+    /**
+     * Constructor function. Is this necessary?
+     *
+     * @return void
+     */
     public function __construct(){
         parent::__construct();
         //used for
 
     }
 
+    /**
+     * Imports articles from XML feed.
+     *
+     * @return void
+     */
     public function import_articles(){
         $feed = $this->load_feed();
         $article_array = $feed->getNewsHTML();
@@ -22,16 +35,19 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         foreach ($article_array as $article) {
             $this->import_single_article($article);
         }
-
-
-
     }
+
     /**
-     * @obj $article single article object
+     * Imports a single article.
+     *
+     * @param object $article An individual article from XML
+     *
+     * @return void
      */
     public function import_single_article($article){
         //used to do the magic on a single article object
 
+          debug(gettype($article));
           $brafton_id = $article->getId();
           $existing_posts = $this->brafton_post_exists($brafton_id);
           $overwrite = $this->brafton_config->get('brafton_importer.brafton_overwrite');
@@ -44,6 +60,13 @@ class BraftonArticleLoader extends BraftonFeedLoader{
           }
 
       //  if (empty($existing_posts)) {
+
+            $unpublished = $this->brafton_config->get('brafton_importer.brafton_publish');
+            if ($unpublished) {
+              $publish_status = 0;
+            } else {
+              $publish_status = 1;
+            }
             $author_id = $this->get_author($article);
 
             $date = $this->get_publish_date($article);
@@ -75,6 +98,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
 
 
      //       $new_node->type = 'brafton_article';
+            $new_node->status = $publish_status;
             $new_node->title = $title;
             $new_node->uid = $author_id;
             $new_node->created = strtotime($date);
@@ -99,7 +123,8 @@ class BraftonArticleLoader extends BraftonFeedLoader{
    *
    * May be moved to feed_loader if we can get the method get passed the same info
    *
-   * @param ? $article The XML article tag.
+   * @param object $article An individual article from XML feed.
+   *
    * @return array $cat_array Includes the needed Drupal taxonomy term IDs for associating with the new article.
    */
   public function get_taxonomy_terms($article) {
