@@ -7,6 +7,8 @@
 
 namespace Drupal\brafton_importer\RCClientLibrary\AdferoArticles;
 
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\Feeds\AdferoFeedsClient;
+
 include_once dirname(__FILE__) . '/AdferoCredentials.php';
 include_once dirname(__FILE__) . '/Articles/AdferoArticlesClient.php';
 include_once dirname(__FILE__) . '/ArticlePhotos/AdferoArticlePhotosClient.php';

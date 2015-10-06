@@ -7,6 +7,8 @@
 
 namespace Drupal\brafton_importer\RCClientLibrary\AdferoArticles\Articles;
 
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\AdferoListBase;
+
 include_once dirname(__FILE__) . '/../AdferoListBase.php';
 
 /**

@@ -7,10 +7,14 @@
 
 namespace Drupal\brafton_importer\Model;
 
+use Drupal\brafton_importer\APIClientLibrary\ApiHandler;
+
 /**
  * The class for articles. Child of BraftonFeedLoader.
  */
 class BraftonArticleLoader extends BraftonFeedLoader{
+
+    protected $API_key;
 
     /**
      * Constructor function. Is this necessary?
@@ -19,23 +23,39 @@ class BraftonArticleLoader extends BraftonFeedLoader{
      */
     public function __construct(){
         parent::__construct();
-        //used for
+        $this->API_key = $this->brafton_config->get('brafton_importer.brafton_api_key');
+    }
 
+    /**
+     * Method for loading feed. Because so basic, perhaps it should be property?
+     *
+     * @return object $feed of class ApiHandler
+     */
+    public function load_article_feed(){
+        $feed = new ApiHandler($this->API_key, 'http://api.' . $this->domain);
+        return $feed;
     }
 
     /**
      * Imports articles from XML feed.
      *
+     * @param string $archive_url The url of the archive file to parse.
+     *
      * @return void
      */
-    public function import_articles(){
-        $feed = $this->load_feed();
-        $article_array = $feed->getNewsHTML();
+    public function import_articles($archive_url){
+        if ($archive_url) {
+          $article_array = \Drupal\brafton_importer\APIClientLibrary\NewsItem::getNewsList( $archive_url,'html' );
+        } else{
+          $feed = $this->load_article_feed();
+          $article_array = $feed->getNewsHTML();
+        }
 
         foreach ($article_array as $article) {
             $this->import_single_article($article);
         }
     }
+
 
     /**
      * Imports a single article.

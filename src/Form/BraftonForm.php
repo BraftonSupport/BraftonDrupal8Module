@@ -26,6 +26,22 @@ class BraftonForm extends ConfigFormBase {
     $article_loader->import_articles();
   }
 
+  static function manual_import_archive(array &$form, FormStateInterface $form_state) {
+    $file_value = $form_state->getValue('brafton_archive_file');
+    $file_id = $file_value[0];
+    $file = file_load($file_id);
+    $file_uri = $file->getFileUri();
+    $file_url = drupal_realpath($file_uri);
+
+    $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
+    $article_loader->import_articles($file_url);
+  }
+
+  static function manual_import_videos() {
+    $article_loader = new \Drupal\brafton_importer\Model\BraftonVideoLoader();
+    $article_loader->import_videos();
+  }
+
   /**
    * {@inheritdoc}
    *
@@ -98,9 +114,9 @@ class BraftonForm extends ConfigFormBase {
       '#title' => t( 'API Root' ),
       '#description' => t( 'The root domain of your Api key (i.e, api.brafton.com).' ),
       '#options' => array(
-        'http://api.brafton.com' => 'Brafton',
-        'http://api.contentlead.com' => 'ContentLEAD',
-        'http://api.castleford.com.au' => 'Castleford',
+        'brafton.com' => 'Brafton',
+        'contentlead.com' => 'ContentLEAD',
+        'castleford.com.au' => 'Castleford',
       ),
       '#default_value' => $config->get('brafton_importer.brafton_api_root'),
     );
@@ -165,18 +181,67 @@ class BraftonForm extends ConfigFormBase {
           '#prefix'   => 'Options in this section apply to Articles ONLY.  Videos have seperate options'
     );
 
-    // Manual Buttons
+    // Video Options
+    $form['brafton_video_options'] = array(
+      '#type' => 'details',
+      '#title' => 'Video Options',
+    );
+    $form['brafton_video_options']['brafton_video_public_key'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Public Key',
+      '#default_value' => $config->get('brafton_importer.brafton_video_public_key'),
+    );
+    $form['brafton_video_options']['brafton_video_private_key'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Private Key',
+      '#default_value' => $config->get('brafton_importer.brafton_video_private_key'),
+    );
+    $form['brafton_video_options']['brafton_video_feed_number'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Feed Number',
+      '#description' => t('Usually 0'),
+      '#default_value' => $config->get('brafton_importer.brafton_video_feed_number'),
+    );
 
+
+    // Archive Controls
+    $form['brafton_archive_options'] = array(
+      '#type' => 'details',
+      '#open' => TRUE,
+      '#title' => 'Archive Uploads',
+    );
+    $form['brafton_archive_options']['brafton_archive_file'] = array(
+      '#type' => 'managed_file',
+      '#title' => t('Article Archive File'),
+      '#description' => t('Upload an XML file'),
+      '#upload_validators' => array(
+        'file_validate_extensions' => array(0 => 'xml'),
+      ),
+    );
+    $form['brafton_archive_options']['brafton_run_archive_importer'] = array(
+      '#type' => 'submit',
+      '#title' => 'Run Archive Importer',
+      '#value' => 'Run Archive Importer',
+      '#submit' => array('::manual_import_archive'),
+    );
+
+    // Manual Buttons
     $form['brafton_manual_options'] = array(
       '#type' => 'details',
       '#open' => TRUE,
-      '#title' => 'Manual Control & Archive Uploads',
+      '#title' => 'Manual Control',
     );
-    $form['brafton_manual_options']['brafton_run_importer2'] = array(
+    $form['brafton_manual_options']['brafton_run_importer'] = array(
       '#type' => 'submit',
-      '#title' => 'Run Article Importer 2',
-      '#value' => 'Run Article Importer 2',
+      '#title' => 'Run Article Importer',
+      '#value' => 'Run Article Importer',
       '#submit' => array('::manual_import_articles'),
+    );
+    $form['brafton_manual_options']['brafton_run_video_importer'] = array(
+      '#type' => 'submit',
+      '#title' => 'Run Video Importer',
+      '#value' => 'Run Video Importer',
+      '#submit' => array('::manual_import_videos'),
     );
 
     return $form;

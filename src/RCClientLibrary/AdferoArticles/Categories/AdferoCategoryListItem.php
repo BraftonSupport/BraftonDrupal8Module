@@ -7,6 +7,8 @@
 
 namespace Drupal\brafton_importer\RCClientLibrary\AdferoArticles\Categories;
 
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\AdferoEntityBase;
+
 include_once dirname(__FILE__) . '/../AdferoEntityBase.php';
 
 /**

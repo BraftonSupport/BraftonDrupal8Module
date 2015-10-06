@@ -16,7 +16,11 @@ function brafton_importer_cron() {
 
 //  \Drupal\brafton_importer\BraftonImporterService::createBraftonArticle();
 
-  \Drupal::service('brafton_importer.brafton_importer_service')->createBraftonArticle();
+//  \Drupal::service('brafton_importer.brafton_importer_service')->createBraftonArticle();
+
+    $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
+    $article_loader->import_articles();
+
 }
 
 

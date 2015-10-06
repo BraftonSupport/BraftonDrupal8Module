@@ -7,7 +7,7 @@
 
 namespace Drupal\brafton_importer\Model;
 
-use Drupal\brafton_importer\APIClientLibrary\ApiHandler;
+
 
 /**
  * The parent class for loading any Brafton XML feed.
@@ -16,8 +16,7 @@ class BraftonFeedLoader {
     //put your properties here
  //   protected $feed;
     protected $brafton_config;
-    protected $API_key;
-    protected $API_domain;
+    protected $domain;
 
     /**
      * Constructor method: Sets initial properties when BraftonFeedLoader objectg is instantiated.
@@ -27,20 +26,11 @@ class BraftonFeedLoader {
     public function __construct(){
         //use this function to get and set all need properties
         $this->brafton_config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
-        $this->API_key = $this->brafton_config->get('brafton_importer.brafton_api_key');
-        $this->API_domain = $this->brafton_config->get('brafton_importer.brafton_api_root');
+        $this->domain = $this->brafton_config->get('brafton_importer.brafton_api_root');
+
     }
 
-    /**
-     * Method for loading feed. Because so basic, perhaps it should be property?
-     *
-     * @return object $feed of class ApiHandler
-     */
-    public function load_feed(){
-        $feed = new ApiHandler($this->API_key, $this->API_domain);
 
-        return $feed;
-    }
 
     // Placeholder
     public function upload_image(){

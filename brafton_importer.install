@@ -245,6 +245,22 @@ class brafton_importer_install {
         ->save();
     }
 
+    // For Teaser View
+    entity_get_display('node', 'brafton_article', 'teaser')
+      ->setComponent('field_brafton_body', array(
+        'type' => 'text_summary_or_trimmed',
+        'label' => 'hidden',
+      ))->save();
+    entity_get_display('node', 'brafton_article', 'teaser')
+      ->setComponent('field_brafton_image', array(
+        'type' => 'image',
+        'label' => 'hidden',
+      ))->save();
+    entity_get_display('node', 'brafton_article', 'teaser')
+      ->setComponent('field_brafton_term', array(
+        'type' => 'entity_reference_label',
+        'label' => 'above',
+      ))->save();
   }
 
   /**
@@ -256,6 +272,7 @@ class brafton_importer_install {
     $brafton_config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
     $brafton_config->set('brafton_importer.brafton_general_switch', 'off');
     $brafton_config->set('brafton_importer.brafton_publish_date', 'published');
+    $brafton_config->set('brafton_importer.brafton_video_feed_number', '0');
     $brafton_config->set('brafton_importer.brafton_category_switch', 'on')->save();
   }
 

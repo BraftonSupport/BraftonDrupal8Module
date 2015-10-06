@@ -27,7 +27,7 @@ class AdferoPhotoClient {
      */
     function __construct($baseUri) {
         if (!preg_match('|^http://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $baseUri)) {
-            throw new \InvalidArgumentException('Not a valid uri');
+        //    throw new \InvalidArgumentException('Not a valid uri');
         };
         if (!preg_match('/\/$/', $baseUri)) {
             $baseUri = $baseUri . '/';
