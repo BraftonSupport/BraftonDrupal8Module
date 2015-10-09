@@ -7,6 +7,8 @@
 
 namespace Drupal\brafton_importer\RCClientLibrary\AdferoArticles\Articles;
 
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\AdferoHelpers;
+
 include_once dirname(__FILE__) . '/../AdferoHelpers.php';
 include_once dirname(__FILE__) . '/AdferoArticle.php';
 include_once dirname(__FILE__) . '/AdferoArticleListItem.php';
@@ -349,7 +351,7 @@ class AdferoArticlesClient {
      * @return AdferoArticle
      */
     private function GetArticleFromXmlString($xml) {
-        $xml = new SimpleXMLElement($xml);
+        $xml = new \SimpleXMLElement($xml);
         $article = new AdferoArticle();
         $fields = array();
         foreach ($xml->article->children() as $child) {
@@ -387,7 +389,7 @@ class AdferoArticlesClient {
      * @return AdferoArticleList
      */
     private function ListArticlesFromXmlString($xml) {
-        $xml = new SimpleXMLElement($xml);
+        $xml = new \SimpleXMLElement($xml);
         $totalCount = intval($xml->articles['totalCount']);
         $articleItems = array();
 

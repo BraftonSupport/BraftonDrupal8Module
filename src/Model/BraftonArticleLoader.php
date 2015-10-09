@@ -81,21 +81,13 @@ class BraftonArticleLoader extends BraftonFeedLoader{
 
       //  if (empty($existing_posts)) {
 
-            $unpublished = $this->brafton_config->get('brafton_importer.brafton_publish');
-            if ($unpublished) {
-              $publish_status = 0;
-            } else {
-              $publish_status = 1;
-            }
+            $publish_status = $this->brafton_config->get('brafton_importer.brafton_publish');
             $author_id = $this->get_author($article);
-
             $date = $this->get_publish_date($article);
-
             $categories = $this->get_taxonomy_terms($article);
             $title = $article->getHeadline();
             $body = $article->getText();
             $summary = $article->getExtract();
-
             $image = $this->get_image_attributes($article);
 /*
             $new_node_info = array(

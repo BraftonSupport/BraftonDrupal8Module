@@ -154,10 +154,14 @@ class BraftonForm extends ConfigFormBase {
       '#title' => t( 'Overwrite any changes made to existing content.' ),
       '#default_value' => $config->get('brafton_importer.brafton_overwrite'),
     );
-      $form['brafton_general_options']['brafton_published'] = array(
-      '#type' => 'checkbox',
-      '#title' => t( 'Import Content as unpublished.' ),
-      '#default_value' => $config->get('brafton_importer.brafton_published'),
+      $form['brafton_general_options']['brafton_publish'] = array(
+      '#type' => 'radios',
+      '#title' => t( 'Publish Status.' ),
+      '#options' => array(
+        0 => 'Unpublished',
+        1 => 'Published',
+      ),
+      '#default_value' => $config->get('brafton_importer.brafton_publish'),
     );
     $form['brafton_general_options']['email'] = array(
       '#type' => 'email',
@@ -275,6 +279,10 @@ class BraftonForm extends ConfigFormBase {
     foreach( $form['brafton_article_options'] as $field => $field_value ) {
       $config->set('brafton_importer.' . $field, $form_state->getValue($field));
     }
+    foreach( $form['brafton_video_options'] as $field => $field_value ) {
+      $config->set('brafton_importer.' . $field, $form_state->getValue($field));
+    }
+
 
   //  $config->set('brafton_importer.' . 'email', $form_state->getValue('email'));
   //  $config->set('brafton_importer.brafton_feed_type', $form_state->getValue('brafton_feed_type'));
