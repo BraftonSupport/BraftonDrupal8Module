@@ -10,6 +10,7 @@ namespace Drupal\brafton_importer\RCClientLibrary\AdferoArticles;
 use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\Feeds\AdferoFeedsClient;
 use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\Articles\AdferoArticlesClient;
 use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\ArticlePhotos\AdferoArticlePhotosClient;
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\Categories\AdferoCategoriesClient;
 
 include_once dirname(__FILE__) . '/AdferoCredentials.php';
 include_once dirname(__FILE__) . '/Articles/AdferoArticlesClient.php';

@@ -7,6 +7,8 @@
 
 namespace Drupal\brafton_importer\RCClientLibrary\AdferoArticles\Categories;
 
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\AdferoHelpers;
+
 include_once dirname(__FILE__) . '/../AdferoHelpers.php';
 include_once dirname(__FILE__) . '/AdferoCategory.php';
 include_once dirname(__FILE__) . '/AdferoCategoryListItem.php';
@@ -48,7 +50,7 @@ class AdferoCategoriesClient {
      */
     public function Get($id) {
         if (!isset($id)) {
-            throw new InvalidArgumentException("id is required");
+            throw new \InvalidArgumentException("id is required");
         }
 
         return $this->GetCategory($id, null, null);
@@ -85,15 +87,15 @@ class AdferoCategoriesClient {
      */
     public function ListForFeed($feedId, $offset, $limit) {
         if (!isset($feedId)) {
-            throw new InvalidArgumentException("feedId is required");
+            throw new \InvalidArgumentException("feedId is required");
         }
 
         if (!isset($offset)) {
-            throw new InvalidArgumentException("offset is required");
+            throw new \InvalidArgumentException("offset is required");
         }
 
         if (!isset($limit)) {
-            throw new InvalidArgumentException("limit is required");
+            throw new \InvalidArgumentException("limit is required");
         }
 
 
@@ -141,15 +143,15 @@ class AdferoCategoriesClient {
      */
     public function ListForArticle($articleId, $offset, $limit) {
         if (!isset($articleId)) {
-            throw new InvalidArgumentException("articleId is required");
+            throw new \InvalidArgumentException("articleId is required");
         }
 
         if (!isset($offset)) {
-            throw new InvalidArgumentException("offset is required");
+            throw new \InvalidArgumentException("offset is required");
         }
 
         if (!isset($limit)) {
-            throw new InvalidArgumentException("limit is required");
+            throw new \InvalidArgumentException("limit is required");
         }
 
         return $this->ListCategoriesForArticle($articleId, $offset, $limit, null, null);
@@ -288,7 +290,7 @@ class AdferoCategoriesClient {
      * @return AdferoCategory
      */
     private function GetCategoryFromXmlString($xml) {
-        $xml = new SimpleXMLElement($xml);
+        $xml = new \SimpleXMLElement($xml);
         $category = new AdferoCategory();
         foreach ($xml->category->children() as $child) {
             switch ($child->getName()) {
@@ -353,7 +355,7 @@ class AdferoCategoriesClient {
      * @return AdferoCategoryList
      */
     private function ListCategoriesFromXmlString($xml) {
-        $xml = new SimpleXMLElement($xml);
+        $xml = new \SimpleXMLElement($xml);
         $totalCount = intval($xml->categories['totalCount']);
         $categoryItems = array();
 
