@@ -85,20 +85,6 @@ class brafton_importer_install {
       $brafton_tax->save();
     }
 
-    // Check if video taxonomy exists. If not, create it.
-    if ( \Drupal\taxonomy\Entity\Vocabulary::load('brafton_video_tax') == FALSE ) {
-      // Defines taxonomy info.
-      $brafton_vocab_info = array(
-        'name' => t('Brafton Video Categories'),
-        'vid' => 'brafton_video_tax',
-        'description' => t('Categories for Brafton video articles'),
-      );
-
-      // Creates new taxonomy.
-      $brafton_tax = \Drupal\taxonomy\Entity\Vocabulary::create($brafton_vocab_info);
-      $brafton_tax->save();
-    }
-
   }
 
   /**
@@ -137,15 +123,6 @@ class brafton_importer_install {
         'field_name' => 'field_brafton_comment',
         'entity_type' => 'node',
         'type' => 'comment',
-      ),
-      'field_brafton_video_term' => array(
-        'field_name' => 'field_brafton_video_term',
-        'entity_type' => 'node',
-        'type' => 'entity_reference',
-        'cardinality' => -1,
-        'settings' => array(
-          'target_type' => 'taxonomy_term',
-        ),
       ),
       'field_brafton_video' => array(
         'field_name' => 'field_brafton_video',
@@ -241,8 +218,8 @@ class brafton_importer_install {
         'entity_type' => 'node',
         'description' => t('The content of the video article'),
       ),
-      'field_brafton_video_term' => array(
-        'field_name' => 'field_brafton_video_term',
+      'video_field_brafton_term' => array(
+        'field_name' => 'field_brafton_term',
         'bundle' => 'brafton_video',
         'label' => t('Categories'),
         'entity_type' => 'node',
@@ -251,7 +228,7 @@ class brafton_importer_install {
           'handler' => 'default:taxonomy_term',
           'handler_settings' => array(
             'target_bundles' => array(
-              'brafton_video_tax' => 'brafton_video_tax'
+              'brafton_tax' => 'brafton_tax'
             ),
             'auto_create' => 'true'
           ),
@@ -317,7 +294,7 @@ class brafton_importer_install {
       'field_brafton_image' => 'image_image',
       'field_brafton_id' => 'number',
       'field_brafton_body' => 'text_textarea_with_summary',
-      'field_brafton_video_term' => 'entity_reference_autocomplete_tags',
+      'field_brafton_term' => 'entity_reference_autocomplete_tags',
       'field_brafton_comment' => 'comment_default',
       'field_brafton_video' => 'text_textarea',
     );
@@ -378,7 +355,7 @@ class brafton_importer_install {
         'type' => 'text_default',
         'label' => 'hidden',
       ),
-      'field_brafton_video_term' => array(
+      'field_brafton_term' => array(
         'type' => 'entity_reference_label',
         'label' => 'above',
       ),
@@ -432,7 +409,7 @@ class brafton_importer_install {
         'label' => 'hidden',
       ))->save();
     entity_get_display('node', 'brafton_video', 'teaser')
-      ->setComponent('field_brafton_video_term', array(
+      ->setComponent('field_brafton_term', array(
         'type' => 'entity_reference_label',
         'label' => 'above',
       ))->save();

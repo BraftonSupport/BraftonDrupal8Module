@@ -31,7 +31,7 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     $this->photo_url = 'http://pictures. ' . $this->domain . '/v2/';
   }
 
-  public function import_categories($brafton_id) {
+  public function get_taxonomy_terms_video($brafton_id) {
     if ( $this->brafton_config->get('brafton_importer.brafton_category_switch') == 'off' ) {
       return array();
     }
@@ -39,19 +39,37 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     //$categories = $this->categories->ListForFeed( $this->feed_list->items[ $this->feed_number ]->id,0,100 )->items;
     //$category_id = $this->categories->ListForArticle( $brafton_id,0,100 )->items[0]->id;
 
+    $vocab = 'brafton_tax';
+    $cat_array = array();
+
+    $cat_list = $this->categories->ListForArticle( $brafton_id,0,100 )->items;
     //If the video article has categories...
-    $cat_array = $this->categories->ListForArticle( $brafton_id,0,100 )->items;
-    if(!empty($cat_array)) {
-      foreach($cat_array as $cat) {
+    if(!empty($cat_list)) {
+      foreach($cat_list as $cat) {
         //$category_id = $cat->id;
-        $category = $this->categories->Get( $cat->id );
-        debug($category);
+        $cat_obj = $this->categories->Get( $cat->id );
+        $name = $cat_obj->name;
+        $existing_terms = taxonomy_term_load_multiple_by_name($name, $vocab);
+        // If term does not exist, create it.
+        if ( empty($existing_terms) ) {
+          // Creates new taxonomy term.
+          $tax_info = array(
+            'name' => $name,
+            'vid' => $vocab,
+          );
+          $brafton_tax_term = \Drupal\taxonomy\Entity\Term::create($tax_info);
+          $brafton_tax_term->save();
+          $term_vid = $brafton_tax_term->id();
+        }
+        else {
+          $term_vid = reset($existing_terms)->id();
+        }
+        $cat_array[] = $term_vid;
       }
+      // returns array of unique term ids (vid).
+      return $cat_array;
 
     }
-    //$category = $this->categories->Get( $category_id );
-
-
 
   }
 
@@ -93,7 +111,8 @@ class BraftonVideoLoader extends BraftonFeedLoader {
 
  //     if (empty($existing_posts)) {
 
-        $this->import_categories($brafton_id);
+        $categories = $this->get_taxonomy_terms_video($brafton_id);
+
 
         $this_article = $this->articles->Get($brafton_id);
 
@@ -107,6 +126,10 @@ class BraftonVideoLoader extends BraftonFeedLoader {
         $new_node->status = $this->brafton_config->get('brafton_importer.brafton_publish');
         $new_node->created = strtotime( $this_article->fields['lastModifiedDate'] );
         $new_node->field_brafton_id = $brafton_id;
+  //      if (!empty($categories)) {
+          $new_node->field_brafton_term = $categories;
+  //      }
+
 
         $new_node->save();
 //      }
