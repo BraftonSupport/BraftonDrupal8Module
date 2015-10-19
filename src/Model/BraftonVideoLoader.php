@@ -104,6 +104,48 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     $this->categories = $this->client->Categories();
   }
 
+  function generate_source_tag($src, $resolution) {
+      $tag = '';
+      $ext = pathinfo($src, PATHINFO_EXTENSION);
+      return sprintf('<source src="%s" type="video/%s" data-resolution="%s" />', $src, $ext, $resolution );
+  }
+
+  public function create_embed($brafton_id) {
+    $this_article = $this->articles->Get($brafton_id);
+
+    $presplash = $this_article->fields['preSplash'];
+    $postsplash = $this_article->fields['postSplash'];
+
+    $video_list = $this->video_client_outputs->ListForArticle($brafton_id,0,10);
+    $list = $video_list->items;
+    $embed_code = sprintf( "<video id='video-%s' class=\"ajs-default-skin atlantis-js\" controls preload=\"auto\" width='512' height='288' poster='%s' >", $brafton_id, $presplash );
+
+    foreach($list as $list_item){
+      $output = $this->video_client_outputs->Get($list_item->id);
+      $type = $output->type;
+      $path = $output->path;
+      $resolution = $output->height;
+      $source = $this->generate_source_tag( $path, $resolution );
+      $embed_code .= $source;
+    }
+    $embed_code .= '</video>';
+
+    $script = '<script type="text/javascript">';
+    $script .=  'var atlantisVideo = AtlantisJS.Init({';
+    $script .=  'videos: [{';
+    $script .='id: "video-' . $brafton_id . '"';
+    // Add CTA stuff here
+    $script .= '}]';
+    $script .= '});';
+    $script .=  '</script>';
+    $embed_code .= $script;
+    //Wraps a Div around the embed code
+    $embed_code = "<div id='post-single-video'>" . $embed_code . "</div>";
+
+    debug($embed_code);
+    return $embed_code;
+  }
+
   // Loops through each video article and grabs data.
   public function run_loop() {
 
@@ -119,22 +161,25 @@ class BraftonVideoLoader extends BraftonFeedLoader {
         $new_node = \Drupal\node\Entity\Node::create(array('type' => 'brafton_video'));
       }
 
-
-
  //     if (empty($existing_posts)) {
 
         $categories = $this->get_taxonomy_terms_video($brafton_id);
 
         $image = $this->get_image_attributes( NULL, 'video', $this->photo_client, $this->photos, $brafton_id );
 
-
         $this_article = $this->articles->Get($brafton_id);
+
+        $embed_code = $this->create_embed($brafton_id);
 
         $new_node->uid = $this->brafton_config->get('brafton_importer.brafton_author');
         $new_node->title = $this_article->fields['title'];
         $new_node->field_brafton_body = array(
           'value' => $this_article->fields['content'],
           'summary' => $this_article->fields['extract'],
+          'format' => 'full_html'
+        );
+        $new_node->field_brafton_video = array(
+          'value' => $embed_code,
           'format' => 'full_html'
         );
         $new_node->status = $this->brafton_config->get('brafton_importer.brafton_publish');

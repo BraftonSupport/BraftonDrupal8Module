@@ -206,6 +206,92 @@ class BraftonForm extends ConfigFormBase {
       '#description' => t('Usually 0'),
       '#default_value' => $config->get('brafton_importer.brafton_video_feed_number'),
     );
+    $form['brafton_video_options']['brafton_video_atlantis_switch'] = array(
+      '#type' => 'radios',
+      '#title' => t('Atlantis JS switch'),
+      '#description' => t('Inject Atlantis JS into header or not. Needed for advanced video functionality like CTAs and sharing.'),
+      '#options' => array(
+        1 => t('On'),
+        0 => t('Off'),
+      ),
+      '#default_value' => $config->get('brafton_importer.brafton_video_atlantis_switch'),
+    );
+    $form['brafton_video_options']['brafton_video_pause_cta_text'] = array(
+      '#type' => 'textfield',
+      '#title' => t( 'Atlantis Pause CTA Text' ),
+      '#description' => t( 'Default video pause cta text every article imports' ),
+      '#default_value' => $config->get( 'brafton_importer.brafton_video_pause_cta_text')
+    );
+    $form['brafton_video_options']['brafton_video_pause_cta_link'] = array(
+        '#type' => 'textfield',
+        '#title'    => t('Atlantis Pause Link'),
+        '#description'  => t('Default video pause cta link'),
+        '#default_value'   => $config->get('brafton_importer.brafton_video_pause_cta_link'),
+    );
+    $form['brafton_video_options']['brafton_video_pause_cta_asset_gateway_id'] = array(
+        '#type' => 'textfield',
+        '#title'    => t('Pause Asset Gateway ID'),
+        '#description'  => t('Asset Gateay Form ID. disables pause link url'),
+        '#default_value'   => $config->get('brafton_importer.brafton_video_pause_cta_asset_gateway_id'),
+    );
+    $form['brafton_video_options']['brafton_video_end_cta_title'] = array(
+      '#type' => 'textfield',
+      '#title' => t( 'Atlantis End CTA Title' ),
+      '#description' => t( 'Default video end cta title every article imports' ),
+      '#default_value' => $config->get('brafton_importer.brafton_video_end_cta_title'),
+    );
+    $form['brafton_video_options']['brafton_video_end_cta_subtitle'] = array(
+      '#type' => 'textfield',
+      '#title' => t( 'Atlantis End CTA Subtitle' ),
+      '#description' => t( 'Default video end cta subtitle every article imports' ),
+      '#default_value' => $config->get( 'brafton_importer.brafton_video_end_cta_subtitle'),
+    );
+    $form['brafton_video_options']['brafton_video_end_cta_link'] = array(
+      '#type' => 'textfield',
+      '#title' => t( 'Atlantis End CTA Link' ),
+      '#description' => t( 'Default video end cta link every article imports. Requires http://' ),
+      '#default_value' => $config->get( 'brafton_importer.brafton_video_end_cta_link'),
+    );
+    $form['brafton_video_options']['brafton_video_end_cta_asset_gateway_id'] = array(
+        '#type' => 'textfield',
+        '#title'    => t('End Asset Gateway ID'),
+        '#description'  => t('Asset Gateay Form ID. disables end link url'),
+        '#default_value'   => $config->get('brafton_importer.brafton_video_end_cta_asset_gateway_id'),
+    );
+    $form['brafton_video_options']['brafton_video_end_cta_text'] = array(
+      '#type' => 'textfield',
+      '#title' => t( 'Atlantis End CTA Text' ),
+      '#description' => t( 'Default video end cta text every article imports' ),
+      '#default_value' => $config->get( 'brafton_importer.brafton_video_end_cta_text'),
+    );
+    $form['brafton_video_options']['brafton_video_end_cta_button_image'] = array(
+        '#type' => 'managed_file',
+        '#title' => t( 'Ending CTA Button Image' ),
+        '#description' => '<span class="actual_description">This is Optional and wil override the end cta text </span>',
+        '#upload_location'  => 'public://',
+        '#default_value'    => $config->get('brafton_importer.brafton_video_end_cta_button_image'),
+    );
+    $form['brafton_video_options']['brafton_video_end_cta_button_placement'] = array(
+        '#type' => 'select',
+        '#title' => t(' Ending button image Placement'),
+        '#description'  => t('Choose the position of button image.  You can further affect the position via css rules'),
+        '#options'  => array(
+            0   => 'Choose Position',
+            'tl'    => 'Top Left',
+            'tr'    => 'Top Right',
+            'bl'    => 'Bottom Left',
+            'br'    => 'Bottom Right'
+            ),
+        '#default_value'    => $config->get('brafton_importer.brafton_video_end_cta_button_placement')
+    );
+    $form['brafton_video_options']['brafton_video_end_cta_background'] = array(
+        '#type' => 'managed_file',
+        '#title' => t( 'Ending Background Image' ),
+        '#description' => '<span class="actual_description">This is Optional</span>',
+        '#upload_location'  => 'public://',
+        '#default_value'    => $config->get('brafton_importer.brafton_video_end_cta_background'),
+    );
+
 
 
     // Archive Controls
