@@ -28,7 +28,7 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     $this->public_key = $this->brafton_config->get('brafton_importer.brafton_video_public_key');
     $this->feed_number = $this->brafton_config->get('brafton_importer.brafton_video_feed_number');
     $this->video_url = 'http://livevideo.api.' . $this->domain . '/v2/';
-    $this->photo_url = 'http://pictures. ' . $this->domain . '/v2/';
+    $this->photo_url = 'http://pictures.' . $this->domain . '/v2/';
   }
 
   public function get_taxonomy_terms_video($brafton_id) {
@@ -73,6 +73,18 @@ class BraftonVideoLoader extends BraftonFeedLoader {
 
   }
 
+  public function get_video_image($brafton_id) {
+    $photo_check_id = $this->photos->ListForArticle( $brafton_id,0,100 );
+
+    if($photo_check_id->items[0]->id){
+      $image = $this->get_image_attributes( NULL, 'video', $this->photo_client, $this->photos, $brafton_id );
+    } else {
+      $image = array('url' => '','alt' => '','title' => '',);
+    }
+    debug($image);
+
+  }
+
   public function get_video_feed() {
 
     $this->video_client = new AdferoVideoClient($this->video_url, $this->public_key, $this->private_key);
@@ -113,6 +125,8 @@ class BraftonVideoLoader extends BraftonFeedLoader {
 
         $categories = $this->get_taxonomy_terms_video($brafton_id);
 
+        $image = $this->get_image_attributes( NULL, 'video', $this->photo_client, $this->photos, $brafton_id );
+
 
         $this_article = $this->articles->Get($brafton_id);
 
@@ -129,6 +143,13 @@ class BraftonVideoLoader extends BraftonFeedLoader {
   //      if (!empty($categories)) {
           $new_node->field_brafton_term = $categories;
   //      }
+        if ( $image) {
+          $new_node->field_brafton_image = system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE );
+          $new_node->field_brafton_image->alt = $image['alt'];
+        }
+
+
+
 
 
         $new_node->save();

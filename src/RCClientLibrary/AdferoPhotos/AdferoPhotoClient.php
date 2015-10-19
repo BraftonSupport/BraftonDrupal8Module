@@ -7,6 +7,10 @@
 
 namespace Drupal\brafton_importer\RCClientLibrary\AdferoPhotos;
 
+use Drupal\brafton_importer\RCClientLibrary\AdferoPhotos\Photos\AdferoPhoto;
+use Drupal\brafton_importer\RCClientLibrary\AdferoPhotos\Photos\AdferoPhotosClient;
+use Drupal\brafton_importer\RCClientLibrary\AdferoPhotos\Photos\AdferoScaleAxis;
+
 include_once dirname(__FILE__) . '/Photos/AdferoPhoto.php';
 include_once dirname(__FILE__) . '/Photos/AdferoPhotosClient.php';
 include_once dirname(__FILE__) . '/Photos/AdferoScaleAxis.php';

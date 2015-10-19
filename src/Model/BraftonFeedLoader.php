@@ -49,12 +49,16 @@ class BraftonFeedLoader {
 
       if( $feedtype == 'video' )  {
         $thisPhotos = $photos->ListForArticle( $id,0,100 );
-        $photoId = $photos->Get( $thisPhotos->items[0]->id )->sourcePhotoId;
-        $image_info = array(
-          'url' => $photoClient->Photos()->GetLocationUrl( $photoId )->locationUri,
-          'alt' => $photos->Get( $thisPhotos->items[0]->id )->fields['caption'],
-          'title' => $photos->Get( $thisPhotos->items[0]->id )->fields['caption'],
-        );
+        if ( $thisPhotos->items[0]->id ) {
+          $photoId = $photos->Get( $thisPhotos->items[0]->id )->sourcePhotoId;
+          $image_info = array(
+            'url' => $photoClient->Photos()->GetLocationUrl( $photoId )->locationUri,
+            'alt' => $photos->Get( $thisPhotos->items[0]->id )->fields['caption'],
+            'title' => $photos->Get( $thisPhotos->items[0]->id )->fields['caption'],
+          );
+        } else {
+          $image_info = NULL;
+        }
         return $image_info;
       }
       else {

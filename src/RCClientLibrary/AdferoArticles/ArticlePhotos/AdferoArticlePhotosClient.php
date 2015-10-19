@@ -7,6 +7,8 @@
 
 namespace Drupal\brafton_importer\RCClientLibrary\AdferoArticles\ArticlePhotos;
 
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\AdferoHelpers;
+
 include_once dirname(__FILE__) . '/../AdferoHelpers.php';
 include_once dirname(__FILE__) . '/AdferoArticlePhoto.php';
 include_once dirname(__FILE__) . '/AdferoArticlePhotoListItem.php';
@@ -228,7 +230,7 @@ class AdferoArticlePhotosClient {
      * @return AdferoArticlePhoto
      */
     private function GetArticlePhotoFromXmlString($xml) {
-        $xml = new SimpleXMLElement($xml);
+        $xml = new \SimpleXMLElement($xml);
         $articlePhoto = new AdferoArticlePhoto();
         $fields = array();
         foreach ($xml->articlePhoto->children() as $child) {
@@ -260,7 +262,7 @@ class AdferoArticlePhotosClient {
      * @return ArticleList
      */
     private function ListArticlePhotosFromXmlString($xml) {
-        $xml = new SimpleXMLElement($xml);
+        $xml = new \SimpleXMLElement($xml);
         $totalCount = intval($xml->articlePhotos['totalCount']);
         $articlePhotoItems = array();
 
