@@ -1,0 +1,6 @@
+atlantisjs:
+  css:
+    theme:
+      http://atlantisjs.brafton.com/v1/atlantisjsv1.3.css: { type: external }
+  js:
+    http://atlantisjs.brafton.com/v1/atlantis.min.v1.3.js: { type: external }

@@ -23,6 +23,28 @@ function brafton_importer_cron() {
 
 }
 
+/**
+ * Implements hook_element_info_alter()
+ */
+// Use to insert atlantis script more selectively
+/*
+function brafton_importer_element_info_alter(array &$types) {
+  if (isset($types['text_long'])) {
+    $types['text_long']['#attached']['library'][] = 'brafton_importer/atlantisjs';
+  }
+}
+*/
+
+/**
+ * Implements hook_page_attachments_alter
+ */
+function brafton_importer_page_attachments_alter(array &$page) {
+  $config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
+  if( $config->get('brafton_importer.brafton_video_atlantis_switch') ) {
+    $page['#attached']['library'][] = 'brafton_importer/atlantisjs';
+  }
+}
+
 
 /*
 $new_node_info = array( ,
