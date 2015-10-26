@@ -30,7 +30,7 @@ function brafton_importer_cron() {
 /*
 function brafton_importer_element_info_alter(array &$types) {
   if (isset($types['text_long'])) {
-    $types['text_long']['#attached']['library'][] = 'brafton_importer/atlantisjs';
+    $types['text_long']['html_head']['#attached']['library'][] = 'brafton_importer/atlantisjs';
   }
 }
 */
@@ -41,11 +41,13 @@ function brafton_importer_element_info_alter(array &$types) {
 function brafton_importer_page_attachments_alter(array &$page) {
   $config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
   if( $config->get('brafton_importer.brafton_video_atlantis_switch') ) {
-    $page['#attached']['library'][] = 'brafton_importer/atlantisjs';
+    $page['#attached']['html_head']['library'][] = 'brafton_importer/atlantisjs';
   }
 }
 
-
+function brafton_page_attachments(array &$page){
+    $page['#attached']['library']['html_head'][] = 'brafton_importer/atlantisjs';
+}
 /*
 $new_node_info = array( ,
   'type' => 'article',
