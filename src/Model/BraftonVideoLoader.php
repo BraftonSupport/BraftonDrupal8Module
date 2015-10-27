@@ -47,6 +47,7 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     if(!empty($cat_list)) {
       foreach($cat_list as $cat) {
         //$category_id = $cat->id;
+
         $cat_obj = $this->categories->Get( $cat->id );
         $name = $cat_obj->name;
         $existing_terms = taxonomy_term_load_multiple_by_name($name, $vocab);
@@ -81,7 +82,7 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     } else {
       $image = array('url' => '','alt' => '','title' => '',);
     }
-    debug($image);
+
 
   }
 
@@ -122,7 +123,6 @@ class BraftonVideoLoader extends BraftonFeedLoader {
 
     foreach($list as $list_item){
       $output = $this->video_client_outputs->Get($list_item->id);
-      $type = $output->type;
       $path = $output->path;
       $resolution = $output->height;
       $source = $this->generate_source_tag( $path, $resolution );
@@ -134,7 +134,61 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     $script .=  'var atlantisVideo = AtlantisJS.Init({';
     $script .=  'videos: [{';
     $script .='id: "video-' . $brafton_id . '"';
-    // Add CTA stuff here
+
+    // CTA stuff here
+    $cta_option = $this->brafton_config->get('brafton_importer.brafton_cta_switch');
+    $pause_cta_text = $this->brafton_config->get( 'brafton_importer.brafton_video_pause_cta_text' );
+    $pause_cta_link = $this->brafton_config->get( 'brafton_importer.brafton_video_pause_cta_link' );
+    $end_cta_title = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_title' );
+    $end_cta_subtitle = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_subtitle' );
+    $end_cta_link = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_link' );
+    $end_cta_text = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_text' );
+
+    if($cta_option){
+      $marpro = '';
+      $pause_asset_id = $this->brafton_config->get('brafton_importer.brafton_video_pause_cta_asset_gateway_id');
+      if($pause_asset_id != ''){
+          $marpro = "assetGateway: { id: '$pause_asset_id' },";
+      }
+      $endingBackground = '';
+      $end_background_image = $this->brafton_config->get('brafton_importer.brafton_video_end_cta_background_url');
+      if($end_background_image != ''){
+          $end_background_image = file_create_url($end_background_image);
+          $endingBackground = "background: '$end_background_image',";
+      }
+      $end_asset_id = $this->brafton_config->get('brafton_importer.brafton_video_end_cta_asset_gateway_id');
+      if($end_asset_id != ''){
+          $endingBackground .= "assetGateway: { id: '$end_asset_id' },";
+      }
+      $buttonImage = '';
+      $button_image_url = $this->brafton_config->get('brafton_importer.brafton_video_end_cta_button_image_url');
+      if($button_image_url != ''){
+          $button_image_url = file_create_url($button_image_url);
+          $buttonImage = "image: '$button_image_url',";
+      }
+
+      $script .=',';
+      $script .= <<<EOT
+          pauseCallToAction: {
+                        $marpro
+                        link: "$pause_cta_link",
+              text: "$pause_cta_text"
+          },
+          endOfVideoOptions: {
+                        $endingBackground
+              callToAction: {
+                  title: "$end_cta_title",
+                  subtitle: "$end_cta_subtitle",
+                  button: {
+                      link: "$end_cta_link",
+                      text: "$end_cta_text",
+                      $buttonImage
+                  }
+              }
+          }
+EOT;
+    }
+    // End CTA stuff
     $script .= '}]';
     $script .= '});';
     $script .=  '</script>';
@@ -142,7 +196,6 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     //Wraps a Div around the embed code
     $embed_code = "<div id='post-single-video'>" . $embed_code . "</div>";
 
-    debug($embed_code);
     return $embed_code;
   }
 

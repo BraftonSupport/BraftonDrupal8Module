@@ -216,6 +216,16 @@ class BraftonForm extends ConfigFormBase {
       ),
       '#default_value' => $config->get('brafton_importer.brafton_video_atlantis_switch'),
     );
+    $form['brafton_video_options']['brafton_cta_switch'] = array(
+      '#type' => 'radios',
+      '#title' => t('CTA switch'),
+      '#description' => t('Turn CTAs on or off'),
+      '#options' => array(
+        1 => t('On'),
+        0 => t('Off')
+      ),
+      '#default_value' => $config->get('brafton_importer.brafton_cta_switch'),
+    );
     $form['brafton_video_options']['brafton_video_pause_cta_text'] = array(
       '#type' => 'textfield',
       '#title' => t( 'Atlantis Pause CTA Text' ),
@@ -270,19 +280,6 @@ class BraftonForm extends ConfigFormBase {
         '#description' => '<span class="actual_description">This is Optional and wil override the end cta text </span>',
         '#upload_location'  => 'public://',
         '#default_value'    => $config->get('brafton_importer.brafton_video_end_cta_button_image'),
-    );
-    $form['brafton_video_options']['brafton_video_end_cta_button_placement'] = array(
-        '#type' => 'select',
-        '#title' => t(' Ending button image Placement'),
-        '#description'  => t('Choose the position of button image.  You can further affect the position via css rules'),
-        '#options'  => array(
-            0   => 'Choose Position',
-            'tl'    => 'Top Left',
-            'tr'    => 'Top Right',
-            'bl'    => 'Bottom Left',
-            'br'    => 'Bottom Right'
-            ),
-        '#default_value'    => $config->get('brafton_importer.brafton_video_end_cta_button_placement')
     );
     $form['brafton_video_options']['brafton_video_end_cta_background'] = array(
         '#type' => 'managed_file',
@@ -351,6 +348,7 @@ class BraftonForm extends ConfigFormBase {
 
 
 
+
   /**
    * {@inheritdoc}
    *
@@ -358,6 +356,18 @@ class BraftonForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('brafton_importer.settings');
+
+    // Permanently save the CTA images
+    $file_value = $form_state->getValue('brafton_video_end_cta_button_image');
+    $file = file_load($file_value[0]);
+    $file->setPermanent();
+    $config->set('brafton_importer.brafton_video_end_cta_button_image_url', $file->getFileUri());
+
+    $file_value = $form_state->getValue('brafton_video_end_cta_background');
+    $file = file_load($file_value[0]);
+    $file->setPermanent();
+    $config->set('brafton_importer.brafton_video_end_cta_background_url', $file->getFileUri());
+
 
     foreach( $form['brafton_general_options'] as $field => $field_value ) {
       $config->set('brafton_importer.' . $field, $form_state->getValue($field));

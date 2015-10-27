@@ -427,7 +427,8 @@ class brafton_importer_install {
     $brafton_config->set('brafton_importer.brafton_publish_date', 'published');
     $brafton_config->set('brafton_importer.brafton_publish', '1');
     $brafton_config->set('brafton_importer.brafton_video_feed_number', '0');
-    $brafton_config->set('brafton.importer.brafton_video_atlantis_switch', 0);
+    $brafton_config->set('brafton_importer.brafton_video_atlantis_switch', 0);
+    $brafton_config->set('brafton_importer.brafton_cta_switch', 0);
     $brafton_config->set('brafton_importer.brafton_category_switch', 'on')->save();
 
   }

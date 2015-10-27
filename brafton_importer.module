@@ -38,13 +38,37 @@ function brafton_importer_element_info_alter(array &$types) {
 /**
  * Implements hook_page_attachments_alter
  */
+/*
 function brafton_importer_page_attachments_alter(array &$page) {
   $config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
   if( $config->get('brafton_importer.brafton_video_atlantis_switch') ) {
     $page['#attached']['library'][] = 'brafton_importer/atlantisjs';
+    debug($page);
+  }
+}
+*/
+/**
+ * Implements hook_page_attachments_alter
+ *
+ * Puts Atlantis css and js in head section. Drupal way is to use library.yml file but it only injects at end.
+ */
+function brafton_importer_page_attachments_alter(array &$page) {
+  $config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
+  if( $config->get('brafton_importer.brafton_video_atlantis_switch') ) {
+
+    $page['#attached']['html_head_link'][] = array( array( 'rel' => 'stylesheet', 'href' => 'http://atlantisjs.brafton.com/v1/atlantisjsv1.3.css'  ), 'atlantis_css' );
+    $page['#attached']['html_head'][] = array( array( '#tag' => 'script', '#attributes' => array( 'src' => 'https://code.jquery.com/jquery-2.1.4.min.js' )  ), 'jquery' );
+    $page['#attached']['html_head'][] = array( array( '#tag' => 'script', '#attributes' => array( 'src' => 'http://atlantisjs.brafton.com/v1/atlantis.min.v1.3.js' )  ), 'atlantis_js' );
+
+
   }
 }
 
+/*
+function brafton_importer_page_attachments(array &$page){
+    $page['#attached']['html_head']['library'][] = 'brafton_importer/atlantisjs';
+}
+*/
 
 /*
 $new_node_info = array( ,

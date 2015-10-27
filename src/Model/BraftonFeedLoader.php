@@ -49,7 +49,7 @@ class BraftonFeedLoader {
 
       if( $feedtype == 'video' )  {
         $thisPhotos = $photos->ListForArticle( $id,0,100 );
-        if ( $thisPhotos->items[0]->id ) {
+        if ( $thisPhotos->items ) {
           $photoId = $photos->Get( $thisPhotos->items[0]->id )->sourcePhotoId;
           $image_info = array(
             'url' => $photoClient->Photos()->GetLocationUrl( $photoId )->locationUri,

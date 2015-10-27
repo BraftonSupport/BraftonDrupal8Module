@@ -5,10 +5,3 @@ atlantisjs:
   js:
     https://code.jquery.com/jquery-2.1.4.min.js: { type: external }
     http://atlantisjs.brafton.com/v1/atlantis.min.v1.3.js: { type: external }
-  dependencies:
-    - core/jquery
-    - core/drupal.ajax
-    - core/drupal
-    - core/drupalSettings
-    - core/jquery.once
-    - core/assets/vendor/jquery
