@@ -30,7 +30,7 @@ function brafton_importer_cron() {
 /*
 function brafton_importer_element_info_alter(array &$types) {
   if (isset($types['text_long'])) {
-    $types['text_long']['#attached']['library'][] = 'brafton_importer/atlantisjs';
+    $types['text_long']['html_head']['#attached']['library'][] = 'brafton_importer/atlantisjs';
   }
 }
 */
@@ -42,8 +42,12 @@ function brafton_importer_element_info_alter(array &$types) {
 function brafton_importer_page_attachments_alter(array &$page) {
   $config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
   if( $config->get('brafton_importer.brafton_video_atlantis_switch') ) {
+<<<<<<< HEAD
     $page['#attached']['library'][] = 'brafton_importer/atlantisjs';
     debug($page);
+=======
+    $page['#attached']['html_head']['library'][] = 'brafton_importer/atlantisjs';
+>>>>>>> 7e338b9e61f096ebb2985e3fb9b1c189e24d2a24
   }
 }
 */
@@ -55,6 +59,7 @@ function brafton_importer_page_attachments_alter(array &$page) {
 function brafton_importer_page_attachments_alter(array &$page) {
   $config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
   if( $config->get('brafton_importer.brafton_video_atlantis_switch') ) {
+
 
     $page['#attached']['html_head_link'][] = array( array( 'rel' => 'stylesheet', 'href' => 'http://atlantisjs.brafton.com/v1/atlantisjsv1.3.css'  ), 'atlantis_css' );
     $page['#attached']['html_head'][] = array( array( '#tag' => 'script', '#attributes' => array( 'src' => 'https://code.jquery.com/jquery-2.1.4.min.js' )  ), 'jquery' );
@@ -69,6 +74,7 @@ function brafton_importer_page_attachments(array &$page){
     $page['#attached']['html_head']['library'][] = 'brafton_importer/atlantisjs';
 }
 */
+
 
 /*
 $new_node_info = array( ,
