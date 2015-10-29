@@ -35,22 +35,7 @@ function brafton_importer_element_info_alter(array &$types) {
 }
 */
 
-/**
- * Implements hook_page_attachments_alter
- */
-/*
-function brafton_importer_page_attachments_alter(array &$page) {
-  $config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
-  if( $config->get('brafton_importer.brafton_video_atlantis_switch') ) {
-<<<<<<< HEAD
-    $page['#attached']['library'][] = 'brafton_importer/atlantisjs';
-    debug($page);
-=======
-    $page['#attached']['html_head']['library'][] = 'brafton_importer/atlantisjs';
->>>>>>> 7e338b9e61f096ebb2985e3fb9b1c189e24d2a24
-  }
-}
-*/
+
 /**
  * Implements hook_page_attachments_alter
  *

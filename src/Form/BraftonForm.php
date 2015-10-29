@@ -24,6 +24,7 @@ class BraftonForm extends ConfigFormBase {
   static function manual_import_articles() {
     $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
     $article_loader->import_articles();
+    drupal_set_message('hello sir');
   }
 
   static function manual_import_archive(array &$form, FormStateInterface $form_state) {
@@ -38,8 +39,9 @@ class BraftonForm extends ConfigFormBase {
   }
 
   static function manual_import_videos() {
-    $article_loader = new \Drupal\brafton_importer\Model\BraftonVideoLoader();
-    $article_loader->import_videos();
+    $video_loader = new \Drupal\brafton_importer\Model\BraftonVideoLoader();
+    $video_loader->import_videos();
+
   }
 
   /**

@@ -74,20 +74,7 @@ class BraftonVideoLoader extends BraftonFeedLoader {
 
   }
 
-  public function get_video_image($brafton_id) {
-    $photo_check_id = $this->photos->ListForArticle( $brafton_id,0,100 );
-
-    if($photo_check_id->items[0]->id){
-      $image = $this->get_image_attributes( NULL, 'video', $this->photo_client, $this->photos, $brafton_id );
-    } else {
-      $image = array('url' => '','alt' => '','title' => '',);
-    }
-
-
-  }
-
   public function get_video_feed() {
-
     $this->video_client = new AdferoVideoClient($this->video_url, $this->public_key, $this->private_key);
     $this->client = new AdferoClient($this->video_url, $this->public_key, $this->private_key);
     $this->photo_client = new AdferoPhotoClient($this->photo_url);
@@ -201,67 +188,74 @@ EOT;
 
   // Loops through each video article and grabs data.
   public function run_loop() {
-
+    $counter = 0;
+    $import_list = array();
     foreach($this->article_list->items as $article) {
       $brafton_id = $article->id;
       $existing_posts = $this->brafton_post_exists($brafton_id);
       $overwrite = $this->brafton_config->get('brafton_importer.brafton_overwrite');
-      if ( $overwrite == 1 && !empty($existing_posts) ) {
+
+      if ( !empty($existing_posts) && $overwrite == 1 ) {
         $nid = reset($existing_posts);
         $new_node = \Drupal\node\Entity\Node::load($nid);
       }
-      else {
+      elseif (empty($existing_posts)) {
         $new_node = \Drupal\node\Entity\Node::create(array('type' => 'brafton_video'));
       }
+      else {
+        continue;
+      }
 
- //     if (empty($existing_posts)) {
+      $categories = $this->get_taxonomy_terms_video($brafton_id);
 
-        $categories = $this->get_taxonomy_terms_video($brafton_id);
+      $image = $this->get_image_attributes( NULL, 'video', $this->photo_client, $this->photos, $brafton_id );
 
-        $image = $this->get_image_attributes( NULL, 'video', $this->photo_client, $this->photos, $brafton_id );
+      $this_article = $this->articles->Get($brafton_id);
 
-        $this_article = $this->articles->Get($brafton_id);
+      $embed_code = $this->create_embed($brafton_id);
 
-        $embed_code = $this->create_embed($brafton_id);
+      $new_node->uid = $this->brafton_config->get('brafton_importer.brafton_author');
+      $new_node->title = $this_article->fields['title'];
+      $import_list['title'][] = $this_article->fields['title'];
+      $new_node->field_brafton_body = array(
+        'value' => $this_article->fields['content'],
+        'summary' => $this_article->fields['extract'],
+        'format' => 'full_html'
+      );
+      $new_node->field_brafton_video = array(
+        'value' => $embed_code,
+        'format' => 'full_html'
+      );
+      $new_node->status = $this->brafton_config->get('brafton_importer.brafton_publish');
+      $new_node->created = strtotime( $this_article->fields['lastModifiedDate'] );
+      $new_node->field_brafton_id = $brafton_id;
 
-        $new_node->uid = $this->brafton_config->get('brafton_importer.brafton_author');
-        $new_node->title = $this_article->fields['title'];
-        $new_node->field_brafton_body = array(
-          'value' => $this_article->fields['content'],
-          'summary' => $this_article->fields['extract'],
-          'format' => 'full_html'
-        );
-        $new_node->field_brafton_video = array(
-          'value' => $embed_code,
-          'format' => 'full_html'
-        );
-        $new_node->status = $this->brafton_config->get('brafton_importer.brafton_publish');
-        $new_node->created = strtotime( $this_article->fields['lastModifiedDate'] );
-        $new_node->field_brafton_id = $brafton_id;
-  //      if (!empty($categories)) {
-          $new_node->field_brafton_term = $categories;
-  //      }
-        if ( $image) {
-          $new_node->field_brafton_image = system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE );
-          $new_node->field_brafton_image->alt = $image['alt'];
-        }
+      $new_node->field_brafton_term = $categories;
 
+      if ( $image) {
+        $new_node->field_brafton_image = system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE );
+        $new_node->field_brafton_image->alt = $image['alt'];
+      }
 
+      $new_node->save();
 
+      $counter = $counter + 1;
 
-
-        $new_node->save();
-//      }
 
     }
+    $import_list['counter'] = $counter;
+    $import_message = '<ul>';
+    foreach($import_list['title'] as $title) {
+      $import_message .= '<li>' . $title . '</li>';
+    }
+    $import_message .= '</ul>';
+    drupal_set_message(t('You imported the following video articles:' . $import_message));
+
 
   }
 
   public function import_videos() {
     $this->get_video_feed();
-
-
-
     $this->run_loop();
   }
 

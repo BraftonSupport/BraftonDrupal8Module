@@ -66,8 +66,6 @@ class BraftonArticleLoader extends BraftonFeedLoader{
      */
     public function import_single_article($article){
         //used to do the magic on a single article object
-
-          debug(gettype($article));
           $brafton_id = $article->getId();
           $existing_posts = $this->brafton_post_exists($brafton_id);
           $overwrite = $this->brafton_config->get('brafton_importer.brafton_overwrite');
