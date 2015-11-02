@@ -36,94 +36,87 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         return $feed;
     }
 
-    /**
-     * Imports articles from XML feed.
-     *
-     * @param string $archive_url The url of the archive file to parse.
-     *
-     * @return void
-     */
-    public function import_articles($archive_url){
-        if ($archive_url) {
-          $article_array = \Drupal\brafton_importer\APIClientLibrary\NewsItem::getNewsList( $archive_url,'html' );
-        } else{
-          $feed = $this->load_article_feed();
-          $article_array = $feed->getNewsHTML();
-        }
-
-        foreach ($article_array as $article) {
-            $this->import_single_article($article);
-        }
-    }
-
 
     /**
      * Imports a single article.
      *
-     * @param object $article An individual article from XML
+     * @param string $archive_url The local file url for an uploaded XML archive. Null for non-archive article importing.
      *
      * @return void
      */
-    public function import_single_article($article){
-        //used to do the magic on a single article object
-          $brafton_id = $article->getId();
-          $existing_posts = $this->brafton_post_exists($brafton_id);
-          $overwrite = $this->brafton_config->get('brafton_importer.brafton_overwrite');
-          if ( $overwrite == 1 && !empty($existing_posts) ) {
-            $nid = reset($existing_posts);
-            $new_node = \Drupal\node\Entity\Node::load($nid);
-          }
-          else {
-            $new_node = \Drupal\node\Entity\Node::create(array('type' => 'brafton_article'));
-          }
+    public function run_article_loop($archive_url){
 
-      //  if (empty($existing_posts)) {
-
-            $publish_status = $this->brafton_config->get('brafton_importer.brafton_publish');
-            $author_id = $this->get_author($article);
-            $date = $this->get_publish_date($article);
-            $categories = $this->get_taxonomy_terms($article);
-            $title = $article->getHeadline();
-            $body = $article->getText();
-            $summary = $article->getExtract();
-            $image = $this->get_image_attributes($article);
-/*
-            $new_node_info = array(
-            'type' => 'brafton_article',
-            'title' => $title,
-            'uid' => $author_id,
-            'created' => strtotime($date),
-            'field_brafton_body' => array(
-              'value' => $body,
-              'summary' => $summary,
-              'format' => 'full_html'
-            ),
-            'field_brafton_id' => $brafton_id,
-            'field_brafton_term' => $categories,
-            'field_brafton_image' => system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE ),
-            );
-
-            $new_node = \Drupal\node\Entity\Node::create($new_node_info);
-*/
+      $counter = 0;
+      $import_list = array('items' => array(), 'counter' => $counter);
 
 
-     //       $new_node->type = 'brafton_article';
-            $new_node->status = $publish_status;
-            $new_node->title = $title;
-            $new_node->uid = $author_id;
-            $new_node->created = strtotime($date);
-            $new_node->field_brafton_body = array(
-              'value' => $body,
-              'summary' => $summary,
-              'format' => 'full_html'
-            );
-            $new_node->field_brafton_id = $brafton_id;
-            $new_node->field_brafton_term = $categories;
-            $new_node->field_brafton_image = system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE );
-            $new_node->field_brafton_image->alt = $image['alt'];
+      if ($archive_url) {
+        $article_array = \Drupal\brafton_importer\APIClientLibrary\NewsItem::getNewsList( $archive_url,'html' );
+      } else{
+        $feed = $this->load_article_feed();
+        $article_array = $feed->getNewsHTML();
+      }
 
-            $new_node->save();
-     //   }
+      foreach ($article_array as $article) {
+
+        $brafton_id = $article->getId();
+        $existing_posts = $this->brafton_post_exists($brafton_id);
+        $overwrite = $this->brafton_config->get('brafton_importer.brafton_overwrite');
+        if ( $overwrite == 1 && !empty($existing_posts) ) {
+          $nid = reset($existing_posts);
+          $new_node = \Drupal\node\Entity\Node::load($nid);
+        }
+        elseif (empty($existing_posts)) {
+          $new_node = \Drupal\node\Entity\Node::create(array('type' => 'brafton_article'));
+        }
+        else {
+          continue;
+        }
+
+        $publish_status = $this->brafton_config->get('brafton_importer.brafton_publish');
+        $author_id = $this->get_author($article);
+        $date = $this->get_publish_date($article);
+        $categories = $this->get_taxonomy_terms($article);
+        $title = $article->getHeadline();
+        $body = $article->getText();
+        $summary = $article->getExtract();
+        $image = $this->get_image_attributes($article);
+
+        $new_node->status = $publish_status;
+        $new_node->title = $title;
+        $new_node->uid = $author_id;
+        $new_node->created = strtotime($date);
+        $new_node->field_brafton_body = array(
+          'value' => $body,
+          'summary' => $summary,
+          'format' => 'full_html'
+        );
+        $new_node->field_brafton_id = $brafton_id;
+        $new_node->field_brafton_term = $categories;
+        $new_node->field_brafton_image = system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE );
+        $new_node->field_brafton_image->alt = $image['alt'];
+
+        $new_node->save();
+
+        $import_list['items'][] = array(
+          'title' => $title,
+          'url' => $new_node->url()
+        );
+
+        $counter = $counter + 1;
+
+      }
+
+      $import_list['counter'] = $counter;
+      $import_message = '<ul>';
+      if ($import_list['items']) {
+        foreach($import_list['items'] as $item) {
+          $import_message .= "<li><a href=''>" . $item['title'] . "</a></li>";
+        }
+      }
+
+      $import_message .+ "</ul>";
+      drupal_set_message(t("You imported " . $import_list['counter'] . " articles:" . $import_message));
 
 
     }

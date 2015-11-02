@@ -186,8 +186,12 @@ EOT;
     return $embed_code;
   }
 
+  public function get_video_date() {
+
+  }
+
   // Loops through each video article and grabs data.
-  public function run_loop() {
+  public function run_video_loop() {
     $counter = 0;
     $import_list = array();
     foreach($this->article_list->items as $article) {
@@ -212,11 +216,20 @@ EOT;
 
       $this_article = $this->articles->Get($brafton_id);
 
+      if ($this->brafton_config->get('brafton_importer.brafton_video_publish_date') == 'lastmodified') {
+        $date = strtotime($this_article->fields['lastModifiedDate']);
+      }
+      else {
+        $date = strtotime($this_article->fields['date']);
+      }
+
+
       $embed_code = $this->create_embed($brafton_id);
 
       $new_node->uid = $this->brafton_config->get('brafton_importer.brafton_author');
       $new_node->title = $this_article->fields['title'];
-      $import_list['title'][] = $this_article->fields['title'];
+  //    $import_list['title'][] = $this_article->fields['title'];
+
       $new_node->field_brafton_body = array(
         'value' => $this_article->fields['content'],
         'summary' => $this_article->fields['extract'],
@@ -227,7 +240,7 @@ EOT;
         'format' => 'full_html'
       );
       $new_node->status = $this->brafton_config->get('brafton_importer.brafton_publish');
-      $new_node->created = strtotime( $this_article->fields['lastModifiedDate'] );
+      $new_node->created = $date;
       $new_node->field_brafton_id = $brafton_id;
 
       $new_node->field_brafton_term = $categories;
@@ -238,6 +251,10 @@ EOT;
       }
 
       $new_node->save();
+      $import_list['items'][] = array(
+        'title' => $this_article->fields['title'],
+        'url' => $new_node->url()
+      );
 
       $counter = $counter + 1;
 
@@ -245,18 +262,18 @@ EOT;
     }
     $import_list['counter'] = $counter;
     $import_message = '<ul>';
-    foreach($import_list['title'] as $title) {
-      $import_message .= '<li>' . $title . '</li>';
+    foreach($import_list['items'] as $item) {
+      $import_message .= '<li><a href="' . $item['url'] . '">' . $item['title'] . '</a></li>';
     }
     $import_message .= '</ul>';
-    drupal_set_message(t('You imported the following video articles:' . $import_message));
+    drupal_set_message(t('You imported ' . $import_list['counter'] . ' video articles:' . $import_message));
 
 
   }
 
   public function import_videos() {
     $this->get_video_feed();
-    $this->run_loop();
+    $this->run_video_loop();
   }
 
 }

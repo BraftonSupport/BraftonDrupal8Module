@@ -23,8 +23,7 @@ class BraftonForm extends ConfigFormBase {
    */
   static function manual_import_articles() {
     $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
-    $article_loader->import_articles();
-    drupal_set_message('hello sir');
+    $article_loader->run_article_loop(null);
   }
 
   static function manual_import_archive(array &$form, FormStateInterface $form_state) {
@@ -35,7 +34,7 @@ class BraftonForm extends ConfigFormBase {
     $file_url = drupal_realpath($file_uri);
 
     $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
-    $article_loader->import_articles($file_url);
+    $article_loader->run_article_loop($file_url);
   }
 
   static function manual_import_videos() {
@@ -93,23 +92,10 @@ class BraftonForm extends ConfigFormBase {
       '#title' => t('Master Importer Status'),
       '#description' => t('Turn the importer on or off globally.'),
       '#options' => array(
-        'on' => t('On'),
-        'off' => t('Off'),
+        1 => t('On'),
+        0 => t('Off'),
       ),
       '#default_value' => $config->get('brafton_importer.brafton_general_switch'),
-    );
-
-    $form['brafton_general_options']['brafton_feed_type'] = array(
-      '#type' => 'select',
-      '#title' => t( 'Type of Content' ),
-      '#description' => t( 'The type(s) of content you are importing.' ),
-      '#options' => array(
-        'articles' => 'Articles',
-        'videos' => 'Videos',
-        'both' => 'Both',
-      ),
-      '#prefix' => '<h2>Choose Content Types</h2>',
-      '#default_value' => $config->get('brafton_importer.brafton_feed_type')
     );
     $form['brafton_general_options']['brafton_api_root'] = array(
       '#type' => 'select',
@@ -130,17 +116,7 @@ class BraftonForm extends ConfigFormBase {
       '#default_value' =>$config->get('brafton_importer.brafton_author'),
       '#prefix' => '<h2>Import Options</h2>',
     );
-    $form['brafton_general_options']['brafton_publish_date'] = array(
-      '#type' => 'radios',
-      '#title' => t( 'Publish Date' ),
-      '#description' => t( 'The date that the content is marked as having been published.' ),
-      '#options' => array(
-        'published' => 'Published Date',
-        'created' => 'Created Date',
-        'lastmodified' => 'Last Modified Date',
-      ),
-      '#default_value' => $config->get('brafton_importer.brafton_publish_date'),
-    );
+
     $form['brafton_general_options']['brafton_category_switch'] = array(
       '#type' => 'radios',
       '#title' => t('Brafton Categories'),
@@ -177,6 +153,16 @@ class BraftonForm extends ConfigFormBase {
       '#type' => 'details',
       '#title' => 'Article Options',
     );
+    $form['brafton_article_options']['brafton_article_switch'] = array(
+      '#type' => 'radios',
+      '#title' => 'Article importer status',
+      '#description' => 'Turn article importing on or off.',
+      '#options' => array(
+        1 => t('On'),
+        0 => t('Off')
+      ),
+      '#default_value' => $config->get('brafton_importer.brafton_article_switch')
+    );
     $form['brafton_article_options']['brafton_api_key'] = array(
       '#type' => 'textfield',
       '#title' => t( 'Api Key' ),
@@ -186,11 +172,33 @@ class BraftonForm extends ConfigFormBase {
       '#maxlength' => 36,
           '#prefix'   => 'Options in this section apply to Articles ONLY.  Videos have seperate options'
     );
+    $form['brafton_article_options']['brafton_publish_date'] = array(
+      '#type' => 'radios',
+      '#title' => t( 'Publish Date' ),
+      '#description' => t( 'The date that the content is marked as having been published.' ),
+      '#options' => array(
+        'published' => 'Published Date',
+        'created' => 'Created Date',
+        'lastmodified' => 'Last Modified Date',
+      ),
+      '#default_value' => $config->get('brafton_importer.brafton_publish_date'),
+    );
+
 
     // Video Options
     $form['brafton_video_options'] = array(
       '#type' => 'details',
       '#title' => 'Video Options',
+    );
+    $form['brafton_video_options']['brafton_video_switch'] = array(
+      '#type' => 'radios',
+      '#title' => 'Video importer status',
+      '#description' => 'Turn video importing on or off',
+      '#options' => array(
+        1 => t('On'),
+        0 => t('Off')
+      ),
+      '#default_value' => $config->get('brafton_importer.brafton_video_switch')
     );
     $form['brafton_video_options']['brafton_video_public_key'] = array(
       '#type' => 'textfield',
@@ -208,6 +216,16 @@ class BraftonForm extends ConfigFormBase {
       '#description' => t('Usually 0'),
       '#default_value' => $config->get('brafton_importer.brafton_video_feed_number'),
     );
+    $form['brafton_video_options']['brafton_video_publish_date'] = array(
+      '#type' => 'radios',
+      '#title' => 'Publish date',
+      '#description' => 'The date that the content is marked as having been published',
+      '#options' => array(
+        'published' => 'Published Date',
+        'lastmodified' => 'Last Modified Date'
+      ),
+      '#default_value' => $config->get('brafton_importer.brafton_video_publish_date')
+    );
     $form['brafton_video_options']['brafton_video_atlantis_switch'] = array(
       '#type' => 'radios',
       '#title' => t('Atlantis JS switch'),
@@ -221,7 +239,7 @@ class BraftonForm extends ConfigFormBase {
     $form['brafton_video_options']['brafton_cta_switch'] = array(
       '#type' => 'radios',
       '#title' => t('CTA switch'),
-      '#description' => t('Turn CTAs on or off'),
+      '#description' => t('Import video articles with CTAs or without.'),
       '#options' => array(
         1 => t('On'),
         0 => t('Off')
@@ -361,14 +379,20 @@ class BraftonForm extends ConfigFormBase {
 
     // Permanently save the CTA images
     $file_value = $form_state->getValue('brafton_video_end_cta_button_image');
-    $file = file_load($file_value[0]);
-    $file->setPermanent();
-    $config->set('brafton_importer.brafton_video_end_cta_button_image_url', $file->getFileUri());
+    if ($file_value) {
+      $file = file_load($file_value[0]);
+      $file_usage = \Drupal::service('file.usage');
+      $file_usage->add($file, 'brafton_importer', 'node', $file->id());
+      $config->set('brafton_importer.brafton_video_end_cta_button_image_url', $file->getFileUri());
+    }
 
     $file_value = $form_state->getValue('brafton_video_end_cta_background');
-    $file = file_load($file_value[0]);
-    $file->setPermanent();
-    $config->set('brafton_importer.brafton_video_end_cta_background_url', $file->getFileUri());
+    if ($file_value) {
+      $file = file_load($file_value[0]);
+      $file_usage = \Drupal::service('file.usage');
+      $file_usage->add($file, 'brafton_importer', 'node', $file->id());
+      $config->set('brafton_importer.brafton_video_end_cta_background_url', $file->getFileUri());
+    }
 
 
     foreach( $form['brafton_general_options'] as $field => $field_value ) {
