@@ -21,6 +21,17 @@ class BraftonVideoLoader extends BraftonFeedLoader {
   protected $feed_number;
   protected $video_url;
   protected $photo_url;
+  protected $video_client;
+  protected $client;
+  protected $photo_client;
+  protected $video_client_outputs;
+  protected $photos;
+  protected $feed_list;
+  protected $feed_id;
+  protected $articles;
+  protected $article_list;
+  protected $categories;
+
 
   public function __construct() {
     parent::__construct();

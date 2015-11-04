@@ -16,7 +16,6 @@ use Drupal\Core\Form\FormStateInterface;
  */
 class BraftonCategoryBlock extends BlockBase implements BlockPluginInterface {
 
-
   /**
    * {@inheritdoc}
    */
