@@ -7,8 +7,6 @@
 
 namespace Drupal\brafton_importer\Model;
 
-
-
 /**
  * The parent class for loading any Brafton XML feed.
  */
@@ -27,63 +25,6 @@ class BraftonFeedLoader {
         //use this function to get and set all need properties
         $this->brafton_config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
         $this->domain = $this->brafton_config->get('brafton_importer.brafton_api_root');
-
-    }
-
-
-
-    // Placeholder
-    public function upload_image(){
-
-    }
-
-
-    /**
-    * Gets image information from XML feed. Copied from Drupal 7 importer.
-    *
-    * @param object $articleobj The individual article info from XML
-    *
-    * @return array $image_info containing image details such as url.
-    */
-    public function get_image_attributes( $articleobj,$feedtype = NULL,$photoClient = NULL,$photos = NULL,$id = NULL )  {
-
-      if( $feedtype == 'video' )  {
-        $thisPhotos = $photos->ListForArticle( $id,0,100 );
-        if ( $thisPhotos->items ) {
-          $photoId = $photos->Get( $thisPhotos->items[0]->id )->sourcePhotoId;
-          $image_info = array(
-            'url' => $photoClient->Photos()->GetLocationUrl( $photoId )->locationUri,
-            'alt' => $photos->Get( $thisPhotos->items[0]->id )->fields['caption'],
-            'title' => $photos->Get( $thisPhotos->items[0]->id )->fields['caption'],
-          );
-        } else {
-          $image_info = NULL;
-        }
-        return $image_info;
-      }
-      else {
-
-        //Grabs the image attributes from the feed.
-
-        $images = $articleobj->getPhotos();
-        if( !empty( $images ) ) {
-          $image_array = $images[0];
-          if( $image_array )  {
-            $image_large = $image_array->getLarge();
-            $image_info = array(
-              'url' => $image_large->getUrl(),
-              'alt' => $image_array->getAlt(),
-              'title' => $image_array->getCaption(),
-            );
-            return $image_info;
-          }
-          else {
-            $image_info = NULL;
-            return $image_info;
-          }
-        }
-      }
-
     }
 
     /**
@@ -101,78 +42,54 @@ class BraftonFeedLoader {
     }
 
     /**
-     * Gets the publish date based on chosen config
+     * Displays list of imported articles.
      *
-     * @param object $article An individual article from the XML feed
+     * @param array $import_list Array containing titles, urls, number of articles imported.
      *
-     * @return string $date The date in string form.
+     * @return void
      */
-    public function get_publish_date($article) {
-      $date_setting = $this->brafton_config->get('brafton_importer.brafton_publish_date');
-      switch($date_setting) {
-        case 'published':
-          $date = $article->getPublishDate();
-          break;
-        case 'created':
-          $date = $article->getCreatedDate();
-          break;
-        case 'lastmodified':
-          $date = $article->getLastModifiedDate();
-          break;
-        default:
-          $date = $article->getPublishDate();
+    public function display_import_message($import_list) {
+
+      $import_message = '<ul>';
+      if ($import_list['items']) {
+        foreach($import_list['items'] as $item) {
+          $import_message .= "<li><a href='" . $item['url'] . "'>" . $item['title'] . "</a></li>";
+        }
       }
-      return $date;
+      $import_message .+ "</ul>";
+      drupal_set_message(t("You imported " . $import_list['counter'] . " articles:" . $import_message));
     }
 
-    /**
-     *  Gets the author of the article based on configs.
-     *
-     * @param object $article An individual article from the XML feed
-     *
-     * @return int $author_id The drupal user ID for the author.
-     */
-    public function get_author($article) {
-      $author_id = $this->brafton_config->get('brafton_importer.brafton_author');
-      // static existing drupal user chosen.
-      if ($author_id != 0) {
-        return $author_id;
+  /**
+   * Takes array of category names, creates the Drupal term if needed, returns Drupal tax term ids.
+   *
+   * @param array $name_array Array of category names (strings)
+   *
+   * @return array $cat_id_array Array of Drupal Tax term ids for individual article.
+   */
+  public function load_tax_terms($name_array) {
+    $vocab = 'brafton_tax';
+    $cat_id_array = array();
+    foreach($name_array as $name) {
+      $existing_terms = taxonomy_term_load_multiple_by_name($name, $vocab);
+      // If term does not exist, create it.
+      if ( empty($existing_terms) ) {
+        // Creates new taxonomy term.
+        $tax_info = array(
+          'name' => $name,
+          'vid' => $vocab,
+        );
+        $brafton_tax_term = \Drupal\taxonomy\Entity\Term::create($tax_info);
+        $brafton_tax_term->save();
+        $term_vid = $brafton_tax_term->id();
       }
-      // user selects Dynamic Authorship
       else {
-      //  $byline = $article->getByLine();
-        $byline = 'juicy';
-        // if byline exists
-        if (!empty($byline)) {
-          $user = user_load_by_name($byline);
-          // if user exists
-          if ($user) {
-            return $user->id();
-          }
-          else {
-            //create user programatically
-            $password = user_password(8);
-            $fields = array(
-                'name' => $byline,
-                'mail' => $byline.rand().'@example.com',
-                'pass' => $password,
-                'status' => 1,
-                'init' => 'email address',
-                'roles' => array(
-                  DRUPAL_AUTHENTICATED_RID => 'authenticated user',
-                ),
-              );
-            $new_user = \Drupal\user\Entity\User::create($fields);
-            $new_user->save();
-            return $new_user->id();
-          }
-        }
-        else {
-          return $author_id;
-        }
+        $term_vid = reset($existing_terms)->id();
       }
+      $cat_id_array[] = $term_vid;
     }
-
-
+    // returns array of unique term ids (vid).
+    return $cat_id_array;
+  }
 
 }

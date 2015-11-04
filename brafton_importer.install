@@ -4,6 +4,8 @@
  *  The install file for the brafton_importer module.
  */
 
+$install = new brafton_importer_install();
+
 /**
  * Class wrapper for install methods.
  */
@@ -28,41 +30,33 @@ class brafton_importer_install {
 
 
   /**
-   * This creates the brafton node type.
+   * This creates the brafton node types.
    *
    * @return void
    */
   function create_brafton_node_type() {
-
     // Check if node type exists. If not, create it.
     if ( \Drupal\node\Entity\NodeType::load('brafton_article') == FALSE ) {
-      // Provides info about the Brafton content type.
       $brafton_node_type_info = array(
         'name' => t('Brafton Article'),
         'type' => 'brafton_article',
         'description' => t('Articles from your Brafton Feed.'),
         'has_title' => TRUE,
       );
-
       $brafton_node_type = \Drupal\node\Entity\NodeType::create($brafton_node_type_info);
       $brafton_node_type->save();
     }
-
     // Check if video node type exists. If not, create it.
     if ( \Drupal\node\Entity\NodeType::load('brafton_video') == FALSE ) {
-      // Provides info about the Brafton content type.
       $brafton_node_type_info = array(
         'name' => t('Brafton Video'),
         'type' => 'brafton_video',
         'description' => t('Video articles from your Brafton Feed.'),
         'has_title' => TRUE,
       );
-
       $brafton_node_type = \Drupal\node\Entity\NodeType::create($brafton_node_type_info);
       $brafton_node_type->save();
     }
-
-
   }
 
   /**
@@ -73,18 +67,15 @@ class brafton_importer_install {
   function create_brafton_tax() {
     // Check if taxonomy exists. If not, create it.
     if ( \Drupal\taxonomy\Entity\Vocabulary::load('brafton_tax') == FALSE ) {
-      // Defines taxonomy info.
       $brafton_vocab_info = array(
         'name' => t('Brafton Categories'),
         'vid' => 'brafton_tax',
         'description' => t('Categories for Brafton articles'),
       );
-
       // Creates new taxonomy.
       $brafton_tax = \Drupal\taxonomy\Entity\Vocabulary::create($brafton_vocab_info);
       $brafton_tax->save();
     }
-
   }
 
   /**
@@ -129,16 +120,13 @@ class brafton_importer_install {
         'entity_type' => 'node',
         'type' => 'text_long',
       ),
-
     );
-
     // Create the fields
     foreach ($fields as $field) {
       if ( empty(\Drupal::entityManager()->getStorage('field_storage_config')->loadByProperties(array('field_name' => $field['field_name']))) ) {
         \Drupal::entityManager()->getStorage('field_storage_config')->create($field)->save();
       }
     }
-
   }
 
   /**
@@ -433,12 +421,8 @@ class brafton_importer_install {
     $brafton_config->set('brafton_importer.brafton_video_atlantis_switch', 0);
     $brafton_config->set('brafton_importer.brafton_cta_switch', 0);
     $brafton_config->set('brafton_importer.brafton_category_switch', 'on')->save();
-
   }
-
 }
-
-$install = new brafton_importer_install();
 
 ?>
 

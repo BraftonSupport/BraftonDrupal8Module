@@ -31,49 +31,31 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     $this->photo_url = 'http://pictures.' . $this->domain . '/v2/';
   }
 
-  public function get_taxonomy_terms_video($brafton_id) {
+  /**
+   * Gets the category names for a video article
+   *
+   * @param int $brafton_id The unique Brafton ID.
+   *
+   * @return array $name_array The array of category names.
+   */
+  public function get_video_tax_names($brafton_id) {
     if ( $this->brafton_config->get('brafton_importer.brafton_category_switch') == 'off' ) {
       return array();
     }
-
-    //$categories = $this->categories->ListForFeed( $this->feed_list->items[ $this->feed_number ]->id,0,100 )->items;
-    //$category_id = $this->categories->ListForArticle( $brafton_id,0,100 )->items[0]->id;
-
-    $vocab = 'brafton_tax';
-    $cat_array = array();
-
+    $name_array = array();
     $cat_list = $this->categories->ListForArticle( $brafton_id,0,100 )->items;
-    //If the video article has categories...
-    if(!empty($cat_list)) {
-      foreach($cat_list as $cat) {
-        //$category_id = $cat->id;
-
-        $cat_obj = $this->categories->Get( $cat->id );
-        $name = $cat_obj->name;
-        $existing_terms = taxonomy_term_load_multiple_by_name($name, $vocab);
-        // If term does not exist, create it.
-        if ( empty($existing_terms) ) {
-          // Creates new taxonomy term.
-          $tax_info = array(
-            'name' => $name,
-            'vid' => $vocab,
-          );
-          $brafton_tax_term = \Drupal\taxonomy\Entity\Term::create($tax_info);
-          $brafton_tax_term->save();
-          $term_vid = $brafton_tax_term->id();
-        }
-        else {
-          $term_vid = reset($existing_terms)->id();
-        }
-        $cat_array[] = $term_vid;
-      }
-      // returns array of unique term ids (vid).
-      return $cat_array;
-
+    foreach($cat_list as $cat) {
+      $cat_name = $this->categories->Get( $cat->id )->name;
+      $name_array[] = $cat_name;
     }
-
+    return $name_array;
   }
 
+  /**
+   * Loads useful API endpoints into properties of object.
+   *
+   * @return void
+   */
   public function get_video_feed() {
     $this->video_client = new AdferoVideoClient($this->video_url, $this->public_key, $this->private_key);
     $this->client = new AdferoClient($this->video_url, $this->public_key, $this->private_key);
@@ -92,12 +74,27 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     $this->categories = $this->client->Categories();
   }
 
-  function generate_source_tag($src, $resolution) {
+  /**
+   * Generates source tags for video.
+   *
+   * @param string $src The url path
+   * @param int $resolution The height of the video
+   *
+   * @return string Full source tag for video.
+   */
+  public function generate_source_tag($src, $resolution) {
       $tag = '';
       $ext = pathinfo($src, PATHINFO_EXTENSION);
       return sprintf('<source src="%s" type="video/%s" data-resolution="%s" />', $src, $ext, $resolution );
   }
 
+  /**
+   * Creates embed code for video
+   *
+   * @param int $brafton_id The unique Brafton ID.
+   *
+   * @return string $embed_code The full embed code containing the video.
+   */
   public function create_embed($brafton_id) {
     $this_article = $this->articles->Get($brafton_id);
 
@@ -186,15 +183,33 @@ EOT;
     return $embed_code;
   }
 
-  public function get_video_date() {
-
+  /**
+   * Retrieves the date for the video article.
+   *
+   * @param object $this_article Contains all title and content fields, etc...
+   *
+   * @return string $date The publish date
+   */
+  public function get_video_date($this_article) {
+    if ($this->brafton_config->get('brafton_importer.brafton_video_publish_date') == 'lastmodified') {
+      $date = strtotime($this_article->fields['lastModifiedDate']);
+    }
+    else {
+      $date = strtotime($this_article->fields['date']);
+    }
+    return $date;
   }
 
-  // Loops through each video article and grabs data.
+  /**
+   * Loops through each video article and saves it as Drupal node.
+   *
+   * @return void
+   */
   public function run_video_loop() {
     $counter = 0;
     $import_list = array();
     foreach($this->article_list->items as $article) {
+      // $article is an object containing just the brafton id
       $brafton_id = $article->id;
       $existing_posts = $this->brafton_post_exists($brafton_id);
       $overwrite = $this->brafton_config->get('brafton_importer.brafton_overwrite');
@@ -209,27 +224,17 @@ EOT;
       else {
         continue;
       }
-
-      $categories = $this->get_taxonomy_terms_video($brafton_id);
-
-      $image = $this->get_image_attributes( NULL, 'video', $this->photo_client, $this->photos, $brafton_id );
-
+      // $this_article contains all the actual info.
       $this_article = $this->articles->Get($brafton_id);
 
-      if ($this->brafton_config->get('brafton_importer.brafton_video_publish_date') == 'lastmodified') {
-        $date = strtotime($this_article->fields['lastModifiedDate']);
-      }
-      else {
-        $date = strtotime($this_article->fields['date']);
-      }
-
-
+      $category_names = $this->get_video_tax_names($brafton_id);
+      $category_ids = $this->load_tax_terms($category_names);
+      $image = $this->get_video_image($brafton_id);
+      $date = $this->get_video_date($this_article);
       $embed_code = $this->create_embed($brafton_id);
 
-      $new_node->uid = $this->brafton_config->get('brafton_importer.brafton_author');
+      $new_node->uid = $this->brafton_config->get('brafton_importer.brafton_video_author');
       $new_node->title = $this_article->fields['title'];
-  //    $import_list['title'][] = $this_article->fields['title'];
-
       $new_node->field_brafton_body = array(
         'value' => $this_article->fields['content'],
         'summary' => $this_article->fields['extract'],
@@ -242,9 +247,7 @@ EOT;
       $new_node->status = $this->brafton_config->get('brafton_importer.brafton_publish');
       $new_node->created = $date;
       $new_node->field_brafton_id = $brafton_id;
-
-      $new_node->field_brafton_term = $categories;
-
+      $new_node->field_brafton_term = $category_ids;
       if ( $image) {
         $new_node->field_brafton_image = system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE );
         $new_node->field_brafton_image->alt = $image['alt'];
@@ -257,18 +260,32 @@ EOT;
       );
 
       $counter = $counter + 1;
-
-
     }
     $import_list['counter'] = $counter;
-    $import_message = '<ul>';
-    foreach($import_list['items'] as $item) {
-      $import_message .= '<li><a href="' . $item['url'] . '">' . $item['title'] . '</a></li>';
+    $this->display_import_message($import_list);
+  }
+
+
+  /**
+   * Retrieves information for the video article image.
+   *
+   * @param int $brafton_id The unique Brafton ID
+   *
+   * @return array $image_info Array with image ulr, alt, caption
+   */
+  public function get_video_image($brafton_id) {
+    $images = $this->photos->ListForArticle($brafton_id, 0, 100);
+    if ($images->items) {
+      $photo_id = $this->photos->Get($images->items[0]->id)->sourcePhotoId;
+      $image_info = array(
+        'url' => $this->photo_client->Photos()->GetLocationUrl($photo_id)->locationUri,
+        'alt' => $this->photos->Get($images->items[0]->id)->fields['caption'],
+        'title' => $this->photos->Get($images->items[0]->id)->fields['caption']
+      );
+    } else {
+      $image_info = null;
     }
-    $import_message .= '</ul>';
-    drupal_set_message(t('You imported ' . $import_list['counter'] . ' video articles:' . $import_message));
-
-
+    return $image_info;
   }
 
   public function import_videos() {

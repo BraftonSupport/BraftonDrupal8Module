@@ -36,9 +36,8 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         return $feed;
     }
 
-
     /**
-     * Imports a single article.
+     * Loops through articles and saves them as Drupal nodes
      *
      * @param string $archive_url The local file url for an uploaded XML archive. Null for non-archive article importing.
      *
@@ -49,10 +48,10 @@ class BraftonArticleLoader extends BraftonFeedLoader{
       $counter = 0;
       $import_list = array('items' => array(), 'counter' => $counter);
 
-
       if ($archive_url) {
         $article_array = \Drupal\brafton_importer\APIClientLibrary\NewsItem::getNewsList( $archive_url,'html' );
-      } else{
+      }
+      else{
         $feed = $this->load_article_feed();
         $article_array = $feed->getNewsHTML();
       }
@@ -74,13 +73,15 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         }
 
         $publish_status = $this->brafton_config->get('brafton_importer.brafton_publish');
-        $author_id = $this->get_author($article);
-        $date = $this->get_publish_date($article);
-        $categories = $this->get_taxonomy_terms($article);
+        $author_id = $this->get_article_author($article);
+        $date = $this->get_article_date($article);
+    //    $categories = $this->get_taxonomy_terms($article);
+        $category_names = $this->get_article_tax_names($article);
+        $category_ids = $this->load_tax_terms($category_names);
         $title = $article->getHeadline();
         $body = $article->getText();
         $summary = $article->getExtract();
-        $image = $this->get_image_attributes($article);
+        $image = $this->get_article_image($article);
 
         $new_node->status = $publish_status;
         $new_node->title = $title;
@@ -92,7 +93,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
           'format' => 'full_html'
         );
         $new_node->field_brafton_id = $brafton_id;
-        $new_node->field_brafton_term = $categories;
+        $new_node->field_brafton_term = $category_ids;
         $new_node->field_brafton_image = system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE );
         $new_node->field_brafton_image->alt = $image['alt'];
 
@@ -102,70 +103,129 @@ class BraftonArticleLoader extends BraftonFeedLoader{
           'title' => $title,
           'url' => $new_node->url()
         );
-
         $counter = $counter + 1;
-
       }
 
       $import_list['counter'] = $counter;
-      $import_message = '<ul>';
-      if ($import_list['items']) {
-        foreach($import_list['items'] as $item) {
-          $import_message .= "<li><a href=''>" . $item['title'] . "</a></li>";
+
+      $this->display_import_message($import_list);
+
+    }
+
+
+    /**
+     *  Gets the author of the article based on configs.
+     *
+     * @param object $article An individual article from the XML feed
+     *
+     * @return int $author_id The drupal user ID for the author.
+     */
+    public function get_article_author($article) {
+      $author_id = $this->brafton_config->get('brafton_importer.brafton_article_author');
+      // static existing drupal user chosen.
+      if ($author_id != 0) {
+        return $author_id;
+      }
+      // user selects Dynamic Authorship
+      else {
+        $byline = $article->getByLine();
+      //  $byline = 'juicy';
+        // if byline exists
+        if (!empty($byline)) {
+          $user = user_load_by_name($byline);
+          // if user exists
+          if ($user) {
+            return $user->id();
+          }
+          else {
+            //create user programatically
+            $password = user_password(8);
+            $fields = array(
+                'name' => $byline,
+                'mail' => $byline.rand().'@example.com',
+                'pass' => $password,
+                'status' => 1,
+                'init' => 'email address',
+                'roles' => array(
+                  DRUPAL_AUTHENTICATED_RID => 'authenticated user',
+                ),
+              );
+            $new_user = \Drupal\user\Entity\User::create($fields);
+            $new_user->save();
+            return $new_user->id();
+          }
+        }
+        else {
+          return $author_id;
         }
       }
-
-      $import_message .+ "</ul>";
-      drupal_set_message(t("You imported " . $import_list['counter'] . " articles:" . $import_message));
+    }
 
 
+    /**
+     * Retrieves article image information as array.
+     *
+     * @param object $article The individual article object from the XML API.
+     *
+     * @return array $image_info Array with url, alt, caption of image.
+     */
+    public function get_article_image($article) {
+      $images = $article->getPhotos()[0];
+      if(!empty($images)) {
+        $image_large = $images->getLarge();
+        $image_info = array(
+          'url' => $image_large->getUrl(),
+          'alt' => $images->getAlt(),
+          'title' => $images->getCaption()
+        );
+      } else{
+        $image_info = null;
+      }
+      return $image_info;
+    }
+
+    /**
+     * Gets the publish date for article based on chosen config
+     *
+     * @param object $article An individual article from the XML feed
+     *
+     * @return string $date The date in string form.
+     */
+    public function get_article_date($article) {
+      $date_setting = $this->brafton_config->get('brafton_importer.brafton_publish_date');
+      switch($date_setting) {
+        case 'published':
+          $date = $article->getPublishDate();
+          break;
+        case 'created':
+          $date = $article->getCreatedDate();
+          break;
+        case 'lastmodified':
+          $date = $article->getLastModifiedDate();
+          break;
+        default:
+          $date = $article->getPublishDate();
+      }
+      return $date;
     }
 
   /**
-   * Gets needed Drupal taxonomy term IDs for associating with the new article.
+   * Gets the category names for a single article and returns array of strings.
    *
-   * May be moved to feed_loader if we can get the method get passed the same info
+   * @param object $article The article object from XML API.
    *
-   * @param object $article An individual article from XML feed.
-   *
-   * @return array $cat_array Includes the needed Drupal taxonomy term IDs for associating with the new article.
+   * @return array $name_array Array of strings (category names).
    */
-  public function get_taxonomy_terms($article) {
-
-
-    if ( $this->brafton_config->get('brafton_importer.brafton_category_switch') == 'off' ) {
+  public function get_article_tax_names($article) {
+    if ($this->brafton_config->get('brafton_importer.brafton_category_switch') == 'off') {
       return array();
     }
-
+    $name_array = array();
     $categories = $article->getCategories();
-
-    $vocab = 'brafton_tax';
-
-    $cat_array = array();
-
     foreach($categories as $category) {
-      $name = $category->getName();
-
-      $existing_terms = taxonomy_term_load_multiple_by_name($name, $vocab);
-
-      // If term does not exist, create it.
-      if ( empty($existing_terms) ) {
-        // Creates new taxonomy term.
-        $tax_info = array(
-          'name' => $name,
-          'vid' => $vocab,
-        );
-        $brafton_tax_term = \Drupal\taxonomy\Entity\Term::create($tax_info);
-        $brafton_tax_term->save();
-        $term_vid = $brafton_tax_term->id();
-      }
-      else {
-        $term_vid = reset($existing_terms)->id();
-      }
-      $cat_array[] = $term_vid;
+      $name_array[] = $category->getName();
     }
-    // returns array of unique term ids (vid).
-    return $cat_array;
+    return $name_array;
   }
 
 

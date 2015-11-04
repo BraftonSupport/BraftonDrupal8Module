@@ -26,6 +26,14 @@ class BraftonForm extends ConfigFormBase {
     $article_loader->run_article_loop(null);
   }
 
+  /**
+   * Manually imports an archive XML file.
+   *
+   * @param array &$form The brafton config form.
+   * @param object $form_state The current state of the brafton config form.
+   *
+   * @return void
+   */
   static function manual_import_archive(array &$form, FormStateInterface $form_state) {
     $file_value = $form_state->getValue('brafton_archive_file');
     $file_id = $file_value[0];
@@ -37,10 +45,14 @@ class BraftonForm extends ConfigFormBase {
     $article_loader->run_article_loop($file_url);
   }
 
+  /**
+   * Manually imports videos
+   *
+   * @return void
+   */
   static function manual_import_videos() {
     $video_loader = new \Drupal\brafton_importer\Model\BraftonVideoLoader();
     $video_loader->import_videos();
-
   }
 
   /**
@@ -60,7 +72,7 @@ class BraftonForm extends ConfigFormBase {
    * Similar to Drupal 7. Builds up form.
    *
    * @param array $form The form object
-   * @param FormStateInterface $form_state The FormStateInterface object
+   * @param object $form_state The FormStateInterface object
    *
    * @return array $form The build up form object
    */
@@ -71,14 +83,11 @@ class BraftonForm extends ConfigFormBase {
     $connection = \Drupal\Core\Database\Database::getConnection();
     $results = $connection->query("SELECT uid, name FROM {users_field_data} WHERE status=1");
     $user_array = $results->fetchAllKeyed();
-
-    // db_query is deprecated.
-  //  $results = db_query( "SELECT uid, name FROM {users_field_data} WHERE status=1" );
-  //  $user_array = $results->fetchAllKeyed();
+    $user_array_plus = $user_array;
 
     //Add option for getting dynamic author.
     //0 is also the id for anonymous author as a fall back if no author is set in the feed
-    $user_array[0] = 'Get Author from Article';
+    $user_array_plus[0] = 'Get Author from Article';
 
     // General Options
     $form['brafton_general_options'] = array(
@@ -86,7 +95,6 @@ class BraftonForm extends ConfigFormBase {
       '#title' => 'General Options',
       '#description' => t('Configure the Brafton Importer here.'),
     );
-
     $form['brafton_general_options']['brafton_general_switch'] = array(
       '#type' => 'radios',
       '#title' => t('Master Importer Status'),
@@ -108,15 +116,6 @@ class BraftonForm extends ConfigFormBase {
       ),
       '#default_value' => $config->get('brafton_importer.brafton_api_root'),
     );
-    $form['brafton_general_options']['brafton_author'] = array(
-      '#type' => 'select',
-      '#title' => t( 'Content Author' ),
-      '#description' => t( 'The author of the content.' ),
-      '#options' => $user_array,
-      '#default_value' =>$config->get('brafton_importer.brafton_author'),
-      '#prefix' => '<h2>Import Options</h2>',
-    );
-
     $form['brafton_general_options']['brafton_category_switch'] = array(
       '#type' => 'radios',
       '#title' => t('Brafton Categories'),
@@ -172,6 +171,14 @@ class BraftonForm extends ConfigFormBase {
       '#maxlength' => 36,
           '#prefix'   => 'Options in this section apply to Articles ONLY.  Videos have seperate options'
     );
+    $form['brafton_article_options']['brafton_article_author'] = array(
+      '#type' => 'select',
+      '#title' => t( 'Content Author' ),
+      '#description' => t( 'The author of the content.' ),
+      '#options' => $user_array_plus,
+      '#default_value' =>$config->get('brafton_importer.brafton_article_author'),
+      '#prefix' => '<h2>Import Options</h2>',
+    );
     $form['brafton_article_options']['brafton_publish_date'] = array(
       '#type' => 'radios',
       '#title' => t( 'Publish Date' ),
@@ -183,7 +190,6 @@ class BraftonForm extends ConfigFormBase {
       ),
       '#default_value' => $config->get('brafton_importer.brafton_publish_date'),
     );
-
 
     // Video Options
     $form['brafton_video_options'] = array(
@@ -216,6 +222,14 @@ class BraftonForm extends ConfigFormBase {
       '#description' => t('Usually 0'),
       '#default_value' => $config->get('brafton_importer.brafton_video_feed_number'),
     );
+    $form['brafton_video_options']['brafton_video_author'] = array(
+      '#type' => 'select',
+      '#title' => t('Content author'),
+      '#description' => t('The author of the content'),
+      '#options' => $user_array,
+      '#default_value' => $config->get('brafton_importer.brafton_video_author'),
+    );
+
     $form['brafton_video_options']['brafton_video_publish_date'] = array(
       '#type' => 'radios',
       '#title' => 'Publish date',
@@ -309,8 +323,6 @@ class BraftonForm extends ConfigFormBase {
         '#default_value'    => $config->get('brafton_importer.brafton_video_end_cta_background'),
     );
 
-
-
     // Archive Controls
     $form['brafton_archive_options'] = array(
       '#type' => 'details',
@@ -373,6 +385,11 @@ class BraftonForm extends ConfigFormBase {
    * {@inheritdoc}
    *
    * Sets the admin configs for each field.
+   *
+   * @param array &$form The brafton config form.
+   * @param object $form_state the FormStateInterface object containing current state of form.
+   *
+   * @return method parent::submitForm Submits the form.
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('brafton_importer.settings');
@@ -394,7 +411,6 @@ class BraftonForm extends ConfigFormBase {
       $config->set('brafton_importer.brafton_video_end_cta_background_url', $file->getFileUri());
     }
 
-
     foreach( $form['brafton_general_options'] as $field => $field_value ) {
       $config->set('brafton_importer.' . $field, $form_state->getValue($field));
     }
@@ -405,15 +421,7 @@ class BraftonForm extends ConfigFormBase {
       $config->set('brafton_importer.' . $field, $form_state->getValue($field));
     }
 
-
-  //  $config->set('brafton_importer.' . 'email', $form_state->getValue('email'));
-  //  $config->set('brafton_importer.brafton_feed_type', $form_state->getValue('brafton_feed_type'));
-  //  $config->set('brafton_importer.brafton_api_root', $form_state->getValue('brafton_api_root'));
     $config->save();
-
-  //  drupal_set_message($this->t('Your email address is @email', array('@email' => $form_state->getValue('email'))));
-
-   // $this->braftonImporterService->createBraftonArticle();
 
     return parent::submitForm($form, $form_state);
   }
