@@ -140,6 +140,7 @@ class BraftonForm extends ConfigFormBase {
       ),
       '#default_value' => $config->get('brafton_importer.brafton_publish'),
     );
+    //@ED Delete this 
     $form['brafton_general_options']['email'] = array(
       '#type' => 'email',
       '#title' => $this->t('Your .com email address.'),
@@ -371,6 +372,7 @@ class BraftonForm extends ConfigFormBase {
    *
    * Adds additional validation of .com email address.
    */
+    //@ED delete this
   public function validateForm(array &$form, FormStateInterface $form_state) {
     if (strpos($form_state->getValue('email'), '.com') === FALSE) {
       $form_state->setErrorByName('email', $this->t('This is not a .com email address.'));
@@ -396,6 +398,7 @@ class BraftonForm extends ConfigFormBase {
 
     // Permanently save the CTA images
     $file_value = $form_state->getValue('brafton_video_end_cta_button_image');
+    //@ED check for empty '', NULL $file_value != null && $file_value != ''
     if ($file_value) {
       $file = file_load($file_value[0]);
       $file_usage = \Drupal::service('file.usage');

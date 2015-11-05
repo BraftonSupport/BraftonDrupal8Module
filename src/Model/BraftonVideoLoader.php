@@ -216,6 +216,7 @@ EOT;
    *
    * @return void
    */
+    //@ED all config->get should be class properties
   public function run_video_loop() {
     $counter = 0;
     $import_list = array();
@@ -243,7 +244,7 @@ EOT;
       $image = $this->get_video_image($brafton_id);
       $date = $this->get_video_date($this_article);
       $embed_code = $this->create_embed($brafton_id);
-
+        
       $new_node->uid = $this->brafton_config->get('brafton_importer.brafton_video_author');
       $new_node->title = $this_article->fields['title'];
       $new_node->field_brafton_body = array(

@@ -47,7 +47,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
 
       $counter = 0;
       $import_list = array('items' => array(), 'counter' => $counter);
-
+        //@ED this should be a method to itself
       if ($archive_url) {
         $article_array = \Drupal\brafton_importer\APIClientLibrary\NewsItem::getNewsList( $archive_url,'html' );
       }
@@ -60,7 +60,9 @@ class BraftonArticleLoader extends BraftonFeedLoader{
 
         $brafton_id = $article->getId();
         $existing_posts = $this->brafton_post_exists($brafton_id);
+          //@ED all config->get inside the foreach loop should be a class property
         $overwrite = $this->brafton_config->get('brafton_importer.brafton_overwrite');
+        
         if ( $overwrite == 1 && !empty($existing_posts) ) {
           $nid = reset($existing_posts);
           $new_node = \Drupal\node\Entity\Node::load($nid);
@@ -73,16 +75,20 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         }
 
         $publish_status = $this->brafton_config->get('brafton_importer.brafton_publish');
+          //@ED should not need to pass an object through for this Just pass the parameter you need
         $author_id = $this->get_article_author($article);
+          
         $date = $this->get_article_date($article);
     //    $categories = $this->get_taxonomy_terms($article);
+          
+          //$date = $article->get{$this->Pubdate}();
+          
         $category_names = $this->get_article_tax_names($article);
         $category_ids = $this->load_tax_terms($category_names);
         $title = $article->getHeadline();
         $body = $article->getText();
         $summary = $article->getExtract();
-        $image = $this->get_article_image($article);
-
+        $image = !empty($article->getPhotos()[0]) ? $this->get_article_image($article) : array();
         $new_node->status = $publish_status;
         $new_node->title = $title;
         $new_node->uid = $author_id;
@@ -120,7 +126,9 @@ class BraftonArticleLoader extends BraftonFeedLoader{
      *
      * @return int $author_id The drupal user ID for the author.
      */
+    //@ED should be in the parent class and just pass in the byline info
     public function get_article_author($article) {
+        //@ED set as class property
       $author_id = $this->brafton_config->get('brafton_importer.brafton_article_author');
       // static existing drupal user chosen.
       if ($author_id != 0) {
@@ -170,8 +178,8 @@ class BraftonArticleLoader extends BraftonFeedLoader{
      * @return array $image_info Array with url, alt, caption of image.
      */
     public function get_article_image($article) {
-      $images = $article->getPhotos()[0];
-      if(!empty($images)) {
+      //$images = $article->getPhotos()[0];
+      if(!empty($article->getPhotos()[0])) {
         $image_large = $images->getLarge();
         $image_info = array(
           'url' => $image_large->getUrl(),
@@ -192,6 +200,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
      * @return string $date The date in string form.
      */
     public function get_article_date($article) {
+        //@ED set as class property
       $date_setting = $this->brafton_config->get('brafton_importer.brafton_publish_date');
       switch($date_setting) {
         case 'published':
