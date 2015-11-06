@@ -23,7 +23,7 @@ class BraftonForm extends ConfigFormBase {
    */
   static function manual_import_articles() {
     $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
-    $article_loader->run_article_loop(null);
+    $article_loader->import_articles(null);
   }
 
   /**
@@ -42,7 +42,7 @@ class BraftonForm extends ConfigFormBase {
     $file_url = drupal_realpath($file_uri);
 
     $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
-    $article_loader->run_article_loop($file_url);
+    $article_loader->import_articles($file_url);
   }
 
   /**
@@ -140,7 +140,7 @@ class BraftonForm extends ConfigFormBase {
       ),
       '#default_value' => $config->get('brafton_importer.brafton_publish'),
     );
-    //@ED Delete this 
+    //@ED Delete this
     $form['brafton_general_options']['email'] = array(
       '#type' => 'email',
       '#title' => $this->t('Your .com email address.'),
@@ -398,12 +398,15 @@ class BraftonForm extends ConfigFormBase {
 
     // Permanently save the CTA images
     $file_value = $form_state->getValue('brafton_video_end_cta_button_image');
-    //@ED check for empty '', NULL $file_value != null && $file_value != ''
     if ($file_value) {
+      debug('yes file value');
       $file = file_load($file_value[0]);
       $file_usage = \Drupal::service('file.usage');
       $file_usage->add($file, 'brafton_importer', 'node', $file->id());
       $config->set('brafton_importer.brafton_video_end_cta_button_image_url', $file->getFileUri());
+    }
+    else {
+      debug('no file value');
     }
 
     $file_value = $form_state->getValue('brafton_video_end_cta_background');

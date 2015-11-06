@@ -31,7 +31,18 @@ class BraftonVideoLoader extends BraftonFeedLoader {
   protected $articles;
   protected $article_list;
   protected $categories;
-
+  protected $video_date_setting;
+  protected $video_author_id;
+  protected $cta_option;
+  protected $pause_cta_text;
+  protected $end_cta_title;
+  protected $end_cta_subtitle;
+  protected $end_cta_link;
+  protected $end_cta_text;
+  protected $pause_asset_id;
+  protected $end_background_image_url;
+  protected $end_asset_id;
+  protected $button_image_url;
 
   public function __construct() {
     parent::__construct();
@@ -40,6 +51,9 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     $this->feed_number = $this->brafton_config->get('brafton_importer.brafton_video_feed_number');
     $this->video_url = 'http://livevideo.api.' . $this->domain . '/v2/';
     $this->photo_url = 'http://pictures.' . $this->domain . '/v2/';
+    $this->video_date_setting = $this->brafton_config->get('brafton_importer.brafton_video_publish_date');
+    $this->video_author_id = $this->brafton_config->get('brafton_importer.brafton_video_author');
+    $this->cta_option = $this->brafton_config->get('brafton_importer.brafton_cta_switch');
   }
 
   /**
@@ -50,7 +64,7 @@ class BraftonVideoLoader extends BraftonFeedLoader {
    * @return array $name_array The array of category names.
    */
   public function get_video_tax_names($brafton_id) {
-    if ( $this->brafton_config->get('brafton_importer.brafton_category_switch') == 'off' ) {
+    if ( $this->category_switch == 'off' ) {
       return array();
     }
     $name_array = array();
@@ -83,6 +97,24 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     $this->article_list = $this->articles->ListForFeed($this->feed_id, 'live', 0, 100);
 
     $this->categories = $this->client->Categories();
+  }
+
+  /**
+   * Loads CTA info as class properties.
+   *
+   * @return void
+   */
+  public function get_cta_info() {
+    $this->pause_cta_text = $this->brafton_config->get( 'brafton_importer.brafton_video_pause_cta_text' );
+    $this->pause_cta_link = $this->brafton_config->get( 'brafton_importer.brafton_video_pause_cta_link' );
+    $this->end_cta_title = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_title' );
+    $this->end_cta_subtitle = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_subtitle' );
+    $this->end_cta_link = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_link' );
+    $this->end_cta_text = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_text' );
+    $this->pause_asset_id = $this->brafton_config->get('brafton_importer.brafton_video_pause_cta_asset_gateway_id');
+    $this->end_background_image_url = $this->brafton_config->get('brafton_importer.brafton_video_end_cta_background_url');
+    $this->end_asset_id = $this->brafton_config->get('brafton_importer.brafton_video_end_cta_asset_gateway_id');
+    $this->button_image_url = $this->brafton_config->get('brafton_importer.brafton_video_end_cta_button_image_url');
   }
 
   /**
@@ -131,52 +163,41 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     $script .='id: "video-' . $brafton_id . '"';
 
     // CTA stuff here
-    $cta_option = $this->brafton_config->get('brafton_importer.brafton_cta_switch');
-    $pause_cta_text = $this->brafton_config->get( 'brafton_importer.brafton_video_pause_cta_text' );
-    $pause_cta_link = $this->brafton_config->get( 'brafton_importer.brafton_video_pause_cta_link' );
-    $end_cta_title = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_title' );
-    $end_cta_subtitle = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_subtitle' );
-    $end_cta_link = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_link' );
-    $end_cta_text = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_text' );
-
-    if($cta_option){
+    if($this->cta_option){
+      $this->get_cta_info();
       $marpro = '';
-      $pause_asset_id = $this->brafton_config->get('brafton_importer.brafton_video_pause_cta_asset_gateway_id');
-      if($pause_asset_id != ''){
-          $marpro = "assetGateway: { id: '$pause_asset_id' },";
+      if($this->pause_asset_id != ''){
+          $marpro = "assetGateway: { id: '$this->pause_asset_id' },";
       }
       $endingBackground = '';
-      $end_background_image = $this->brafton_config->get('brafton_importer.brafton_video_end_cta_background_url');
-      if($end_background_image != ''){
-          $end_background_image = file_create_url($end_background_image);
-          $endingBackground = "background: '$end_background_image',";
+      if($this->end_background_image_url != ''){
+          $end_background_image_url_2 = file_create_url($this->end_background_image_url);
+          $endingBackground = "background: '$end_background_image_url_2',";
       }
-      $end_asset_id = $this->brafton_config->get('brafton_importer.brafton_video_end_cta_asset_gateway_id');
-      if($end_asset_id != ''){
-          $endingBackground .= "assetGateway: { id: '$end_asset_id' },";
+      if($this->end_asset_id != ''){
+          $endingBackground .= "assetGateway: { id: '$this->end_asset_id' },";
       }
       $buttonImage = '';
-      $button_image_url = $this->brafton_config->get('brafton_importer.brafton_video_end_cta_button_image_url');
-      if($button_image_url != ''){
-          $button_image_url = file_create_url($button_image_url);
-          $buttonImage = "image: '$button_image_url',";
+      if($this->button_image_url != ''){
+          $button_image_url_2 = file_create_url($this->button_image_url);
+          $buttonImage = "image: '$button_image_url_2',";
       }
 
       $script .=',';
       $script .= <<<EOT
           pauseCallToAction: {
                         $marpro
-                        link: "$pause_cta_link",
-              text: "$pause_cta_text"
+                        link: "$this->pause_cta_link",
+              text: "$this->pause_cta_text"
           },
           endOfVideoOptions: {
                         $endingBackground
               callToAction: {
-                  title: "$end_cta_title",
-                  subtitle: "$end_cta_subtitle",
+                  title: "$this->end_cta_title",
+                  subtitle: "$this->end_cta_subtitle",
                   button: {
-                      link: "$end_cta_link",
-                      text: "$end_cta_text",
+                      link: "$this->end_cta_link",
+                      text: "$this->end_cta_text",
                       $buttonImage
                   }
               }
@@ -202,7 +223,7 @@ EOT;
    * @return string $date The publish date
    */
   public function get_video_date($this_article) {
-    if ($this->brafton_config->get('brafton_importer.brafton_video_publish_date') == 'lastmodified') {
+    if ($this->video_date_setting == 'lastmodified') {
       $date = strtotime($this_article->fields['lastModifiedDate']);
     }
     else {
@@ -216,7 +237,6 @@ EOT;
    *
    * @return void
    */
-    //@ED all config->get should be class properties
   public function run_video_loop() {
     $counter = 0;
     $import_list = array();
@@ -224,9 +244,8 @@ EOT;
       // $article is an object containing just the brafton id
       $brafton_id = $article->id;
       $existing_posts = $this->brafton_post_exists($brafton_id);
-      $overwrite = $this->brafton_config->get('brafton_importer.brafton_overwrite');
 
-      if ( !empty($existing_posts) && $overwrite == 1 ) {
+      if ( !empty($existing_posts) && $this->overwrite == 1 ) {
         $nid = reset($existing_posts);
         $new_node = \Drupal\node\Entity\Node::load($nid);
       }
@@ -244,8 +263,8 @@ EOT;
       $image = $this->get_video_image($brafton_id);
       $date = $this->get_video_date($this_article);
       $embed_code = $this->create_embed($brafton_id);
-        
-      $new_node->uid = $this->brafton_config->get('brafton_importer.brafton_video_author');
+
+      $new_node->uid = $this->video_author_id;
       $new_node->title = $this_article->fields['title'];
       $new_node->field_brafton_body = array(
         'value' => $this_article->fields['content'],
@@ -256,7 +275,7 @@ EOT;
         'value' => $embed_code,
         'format' => 'full_html'
       );
-      $new_node->status = $this->brafton_config->get('brafton_importer.brafton_publish');
+      $new_node->status = $this->publish_status;
       $new_node->created = $date;
       $new_node->field_brafton_id = $brafton_id;
       $new_node->field_brafton_term = $category_ids;

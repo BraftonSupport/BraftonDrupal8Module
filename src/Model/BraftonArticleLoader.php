@@ -15,6 +15,8 @@ use Drupal\brafton_importer\APIClientLibrary\ApiHandler;
 class BraftonArticleLoader extends BraftonFeedLoader{
 
     protected $API_key;
+    protected $article_date_setting;
+    protected $article_author_id;
 
     /**
      * Constructor function. Is this necessary?
@@ -24,46 +26,47 @@ class BraftonArticleLoader extends BraftonFeedLoader{
     public function __construct(){
         parent::__construct();
         $this->API_key = $this->brafton_config->get('brafton_importer.brafton_api_key');
+        $this->article_date_setting = $this->brafton_config->get('brafton_importer.brafton_publish_date');
+        $this->article_author_id = $this->brafton_config->get('brafton_importer.brafton_article_author');
     }
 
     /**
-     * Method for loading feed. Because so basic, perhaps it should be property?
+     * Get the Articles feed using the XML API.
      *
-     * @return object $feed of class ApiHandler
+     * @param string $archive_url The local file url for an uploaded XML archive. Null for non-archive article importing.
+     *
+     * @return array $article_array Array containing individual NewsItem Objects.
      */
-    public function load_article_feed(){
+    public function get_article_feed($archive_url) {
+
+      if ($archive_url) {
+        $article_array = \Drupal\brafton_importer\APIClientLibrary\NewsItem::getNewsList( $archive_url,'html' );
+      }
+      else{
         $feed = new ApiHandler($this->API_key, 'http://api.' . $this->domain);
-        return $feed;
+        $article_array = $feed->getNewsHTML();
+      }
+      return $article_array;
     }
 
     /**
      * Loops through articles and saves them as Drupal nodes
      *
-     * @param string $archive_url The local file url for an uploaded XML archive. Null for non-archive article importing.
+     * @param array $article_array Array containing individual NewsItem Objects.
      *
      * @return void
      */
-    public function run_article_loop($archive_url){
+    public function run_article_loop($article_array){
 
       $counter = 0;
       $import_list = array('items' => array(), 'counter' => $counter);
-        //@ED this should be a method to itself
-      if ($archive_url) {
-        $article_array = \Drupal\brafton_importer\APIClientLibrary\NewsItem::getNewsList( $archive_url,'html' );
-      }
-      else{
-        $feed = $this->load_article_feed();
-        $article_array = $feed->getNewsHTML();
-      }
 
       foreach ($article_array as $article) {
 
         $brafton_id = $article->getId();
         $existing_posts = $this->brafton_post_exists($brafton_id);
-          //@ED all config->get inside the foreach loop should be a class property
-        $overwrite = $this->brafton_config->get('brafton_importer.brafton_overwrite');
-        
-        if ( $overwrite == 1 && !empty($existing_posts) ) {
+
+        if ( $this->overwrite == 1 && !empty($existing_posts) ) {
           $nid = reset($existing_posts);
           $new_node = \Drupal\node\Entity\Node::load($nid);
         }
@@ -74,22 +77,15 @@ class BraftonArticleLoader extends BraftonFeedLoader{
           continue;
         }
 
-        $publish_status = $this->brafton_config->get('brafton_importer.brafton_publish');
-          //@ED should not need to pass an object through for this Just pass the parameter you need
-        $author_id = $this->get_article_author($article);
-          
+        $author_id = $this->get_author($article->getByLine());
         $date = $this->get_article_date($article);
-    //    $categories = $this->get_taxonomy_terms($article);
-          
-          //$date = $article->get{$this->Pubdate}();
-          
-        $category_names = $this->get_article_tax_names($article);
+        $category_names = $this->get_article_tax_names($article->getCategories());
         $category_ids = $this->load_tax_terms($category_names);
         $title = $article->getHeadline();
         $body = $article->getText();
         $summary = $article->getExtract();
-        $image = !empty($article->getPhotos()[0]) ? $this->get_article_image($article) : array();
-        $new_node->status = $publish_status;
+        $image = get_article_image($article->getPhotos()[0]);
+        $new_node->status = $this->publish_status;
         $new_node->title = $title;
         $new_node->uid = $author_id;
         $new_node->created = strtotime($date);
@@ -118,73 +114,20 @@ class BraftonArticleLoader extends BraftonFeedLoader{
 
     }
 
-
-    /**
-     *  Gets the author of the article based on configs.
-     *
-     * @param object $article An individual article from the XML feed
-     *
-     * @return int $author_id The drupal user ID for the author.
-     */
-    //@ED should be in the parent class and just pass in the byline info
-    public function get_article_author($article) {
-        //@ED set as class property
-      $author_id = $this->brafton_config->get('brafton_importer.brafton_article_author');
-      // static existing drupal user chosen.
-      if ($author_id != 0) {
-        return $author_id;
-      }
-      // user selects Dynamic Authorship
-      else {
-        $byline = $article->getByLine();
-      //  $byline = 'juicy';
-        // if byline exists
-        if (!empty($byline)) {
-          $user = user_load_by_name($byline);
-          // if user exists
-          if ($user) {
-            return $user->id();
-          }
-          else {
-            //create user programatically
-            $password = user_password(8);
-            $fields = array(
-                'name' => $byline,
-                'mail' => $byline.rand().'@example.com',
-                'pass' => $password,
-                'status' => 1,
-                'init' => 'email address',
-                'roles' => array(
-                  DRUPAL_AUTHENTICATED_RID => 'authenticated user',
-                ),
-              );
-            $new_user = \Drupal\user\Entity\User::create($fields);
-            $new_user->save();
-            return $new_user->id();
-          }
-        }
-        else {
-          return $author_id;
-        }
-      }
-    }
-
-
     /**
      * Retrieves article image information as array.
      *
-     * @param object $article The individual article object from the XML API.
+     * @param object $images The first image associated with an article
      *
      * @return array $image_info Array with url, alt, caption of image.
      */
-    public function get_article_image($article) {
-      //$images = $article->getPhotos()[0];
-      if(!empty($article->getPhotos()[0])) {
-        $image_large = $images->getLarge();
+    public function get_article_image($image) {
+      if(!empty($image)) {
+        $image_large = $image->getLarge();
         $image_info = array(
           'url' => $image_large->getUrl(),
-          'alt' => $images->getAlt(),
-          'title' => $images->getCaption()
+          'alt' => $image->getAlt(),
+          'title' => $image->getCaption()
         );
       } else{
         $image_info = null;
@@ -200,9 +143,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
      * @return string $date The date in string form.
      */
     public function get_article_date($article) {
-        //@ED set as class property
-      $date_setting = $this->brafton_config->get('brafton_importer.brafton_publish_date');
-      switch($date_setting) {
+      switch($this->article_date_setting) {
         case 'published':
           $date = $article->getPublishDate();
           break;
@@ -221,21 +162,31 @@ class BraftonArticleLoader extends BraftonFeedLoader{
   /**
    * Gets the category names for a single article and returns array of strings.
    *
-   * @param object $article The article object from XML API.
+   * @param array $categories Array of article category objects
    *
    * @return array $name_array Array of strings (category names).
    */
-  public function get_article_tax_names($article) {
-    if ($this->brafton_config->get('brafton_importer.brafton_category_switch') == 'off') {
+  public function get_article_tax_names($categories) {
+    if ($this->category_switch == 'off') {
       return array();
     }
     $name_array = array();
-    $categories = $article->getCategories();
     foreach($categories as $category) {
       $name_array[] = $category->getName();
     }
     return $name_array;
   }
 
+  /**
+   * Final method used to import articles.
+   *
+   * @param string $archive_url The local file url for an uploaded XML archive. Null for non-archive article importing.
+   *
+   * @return void
+   */
+  public function import_articles($archive_url) {
+    $article_array = $this->get_article_feed($archive_url);
+    $this->run_article_loop($article_array);
+  }
 
 }

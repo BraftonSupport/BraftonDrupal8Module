@@ -15,6 +15,9 @@ class BraftonFeedLoader {
  //   protected $feed;
     protected $brafton_config;
     protected $domain;
+    protected $overwrite;
+    protected $publish_status;
+    protected $category_switch;
 
     /**
      * Constructor method: Sets initial properties when BraftonFeedLoader objectg is instantiated.
@@ -25,6 +28,9 @@ class BraftonFeedLoader {
         //use this function to get and set all need properties
         $this->brafton_config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
         $this->domain = $this->brafton_config->get('brafton_importer.brafton_api_root');
+        $this->overwrite = $this->brafton_config->get('brafton_importer.brafton_overwrite');
+        $this->publish_status = $this->brafton_config->get('brafton_importer.brafton_publish');
+        $this->category_switch = $this->brafton_config->get('brafton_importer.brafton_category_switch');
     }
 
     /**
@@ -91,5 +97,53 @@ class BraftonFeedLoader {
     // returns array of unique term ids (vid).
     return $cat_id_array;
   }
+
+  /**
+   *  Gets the author of the article based on configs.
+   *
+   * @param string $byline The byline author from the XML feed.
+   *
+   * @return int $author_id The drupal user ID for the author.
+   */
+  public function get_author($byline) {
+    // static existing drupal user chosen.
+    if ($this->article_author_id != 0) {
+      return $this->article_author_id;
+    }
+    // user selects Dynamic Authorship
+    else {
+    //  $byline = 'juicy';
+      // if byline exists
+      if (!empty($byline)) {
+        $user = user_load_by_name($byline);
+        // if user exists
+        if ($user) {
+          return $user->id();
+        }
+        else {
+          //create user programatically
+          $password = user_password(8);
+          $fields = array(
+              'name' => $byline,
+              'mail' => $byline.rand().'@example.com',
+              'pass' => $password,
+              'status' => 1,
+              'init' => 'email address',
+              'roles' => array(
+                DRUPAL_AUTHENTICATED_RID => 'authenticated user',
+              ),
+            );
+          $new_user = \Drupal\user\Entity\User::create($fields);
+          $new_user->save();
+          return $new_user->id();
+        }
+      }
+      else {
+        return $this->article_author_id;
+      }
+    }
+  }
+
+
 
 }
