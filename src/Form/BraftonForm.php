@@ -17,6 +17,42 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class BraftonForm extends ConfigFormBase {
 
   /**
+   * Gets importer error log
+   *
+   * @return string $string The error messages.
+   */
+  public function get_errors() {
+    $config = $this->config('brafton_importer.settings');
+  // $config->set('brafton_importer.brafton_e_log', '');
+    $errors = $config->get('brafton_importer.brafton_e_log');
+    $string = '';
+    if (is_array($errors)) {
+      $errors = array_reverse($errors);
+      foreach ($errors as $error) {
+
+        $trace_array = unserialize($error['trace']);
+       $trace_message = print_r($trace_array, true);
+
+        $string .= $error['client_sys_time'] . ': ' . $error['error'] . '<br/> Trace: ' . $trace_message . '<br><br>';
+      }
+    }
+    else {
+      $string = 'There are no errors';
+    }
+    return $string;
+  }
+
+  /**
+   * Clears error log from config
+   *
+   * @return void
+   */
+  static function clear_error_log() {
+    $config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
+    $config->set('brafton_importer.brafton_e_log', '')->save();
+  }
+
+  /**
    * Manually imports articles
    *
    * @return void
@@ -345,6 +381,35 @@ class BraftonForm extends ConfigFormBase {
       '#submit' => array('::manual_import_archive'),
     );
 
+    // Error Reporting
+    $form['brafton_error_options'] = array(
+      '#type' => 'details',
+      '#title' => 'Error Reporting'
+    );
+    $form['brafton_error_options']['brafton_error_log'] = array(
+      '#type' => 'radio',
+      '#title' => t('Report Log'),
+      '#description' => $this->get_errors(),
+      '#format' => 'full_html',
+      '#default_value' => $config->get('brafton_importer.brafton_error_log')
+    );
+    $form['brafton_error_options']['brafton_debug_mode'] = array(
+      '#type' => 'radios',
+      '#title' => t('Debug mode'),
+      '#description' => t('Log all errors and warnings'),
+      '#options' => array(
+        1 => t('On'),
+        0 => t('Off')
+      ),
+      '#default_value' => $config->get('brafton_importer.brafton_debug_mode'),
+    );
+    $form['brafton_error_options']['brafton_clear_errors'] = array(
+      '#type' => 'submit',
+      '#title' => t('Clear error log'),
+      '#value' => t('Clear error log'),
+      '#submit' => array('::clear_error_log')
+    );
+
     // Manual Buttons
     $form['brafton_manual_options'] = array(
       '#type' => 'details',
@@ -399,14 +464,10 @@ class BraftonForm extends ConfigFormBase {
     // Permanently save the CTA images
     $file_value = $form_state->getValue('brafton_video_end_cta_button_image');
     if ($file_value) {
-      debug('yes file value');
       $file = file_load($file_value[0]);
       $file_usage = \Drupal::service('file.usage');
       $file_usage->add($file, 'brafton_importer', 'node', $file->id());
       $config->set('brafton_importer.brafton_video_end_cta_button_image_url', $file->getFileUri());
-    }
-    else {
-      debug('no file value');
     }
 
     $file_value = $form_state->getValue('brafton_video_end_cta_background');
@@ -424,6 +485,9 @@ class BraftonForm extends ConfigFormBase {
       $config->set('brafton_importer.' . $field, $form_state->getValue($field));
     }
     foreach( $form['brafton_video_options'] as $field => $field_value ) {
+      $config->set('brafton_importer.' . $field, $form_state->getValue($field));
+    }
+    foreach( $form['brafton_error_options'] as $field => $field_value ) {
       $config->set('brafton_importer.' . $field, $form_state->getValue($field));
     }
 

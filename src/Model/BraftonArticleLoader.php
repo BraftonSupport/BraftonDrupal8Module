@@ -14,7 +14,6 @@ use Drupal\brafton_importer\APIClientLibrary\ApiHandler;
  */
 class BraftonArticleLoader extends BraftonFeedLoader{
 
-    protected $API_key;
     protected $article_date_setting;
     protected $article_author_id;
 
@@ -25,7 +24,6 @@ class BraftonArticleLoader extends BraftonFeedLoader{
      */
     public function __construct(){
         parent::__construct();
-        $this->API_key = $this->brafton_config->get('brafton_importer.brafton_api_key');
         $this->article_date_setting = $this->brafton_config->get('brafton_importer.brafton_publish_date');
         $this->article_author_id = $this->brafton_config->get('brafton_importer.brafton_article_author');
     }
@@ -84,7 +82,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         $title = $article->getHeadline();
         $body = $article->getText();
         $summary = $article->getExtract();
-        $image = get_article_image($article->getPhotos()[0]);
+        $image = $this->get_article_image($article->getPhotos()[0]);
         $new_node->status = $this->publish_status;
         $new_node->title = $title;
         $new_node->uid = $author_id;

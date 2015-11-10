@@ -18,6 +18,8 @@ class BraftonFeedLoader {
     protected $overwrite;
     protected $publish_status;
     protected $category_switch;
+    protected $API_key;
+    protected $errors;
 
     /**
      * Constructor method: Sets initial properties when BraftonFeedLoader objectg is instantiated.
@@ -31,6 +33,8 @@ class BraftonFeedLoader {
         $this->overwrite = $this->brafton_config->get('brafton_importer.brafton_overwrite');
         $this->publish_status = $this->brafton_config->get('brafton_importer.brafton_publish');
         $this->category_switch = $this->brafton_config->get('brafton_importer.brafton_category_switch');
+        $this->API_key = $this->brafton_config->get('brafton_importer.brafton_api_key');
+        $this->errors = new BraftonErrorReport($this->API_key, $this->domain, $this->brafton_config->get('brafton_importer.brafton_debug_mode'));
     }
 
     /**
@@ -41,9 +45,14 @@ class BraftonFeedLoader {
      * @return array $nids An array of node ids (nids) that have matching Brafton Id.
      */
     public function brafton_post_exists($brafton_id) {
+      $loop_section = $this->errors->get_section();
+      $this->errors->set_section('Checking for existing Brafton ID ' . $brafton_id);
+
       $query = \Drupal::entityQuery('node')
         ->condition('field_brafton_id', $brafton_id);
       $nids = $query->execute();
+
+      $this->errors->set_section($loop_section);
       return $nids;
     }
 

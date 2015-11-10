@@ -4,9 +4,6 @@
 
 - validations on model level - if article importing is ON, and api key is blank, make sure to avoid errors
 
-- Archive View
-  - Use one-off module that installs View. Then delete. View stays. ?
-
 - Children categories
 
 - Default categories
