@@ -57,8 +57,17 @@ function brafton_importer_page_attachments_alter(array &$page) {
     $page['#attached']['html_head_link'][] = array( array( 'rel' => 'stylesheet', 'href' => 'http://atlantisjs.brafton.com/v1/atlantisjsv1.3.css'  ), 'atlantis_css' );
     $page['#attached']['html_head'][] = array( array( '#tag' => 'script', '#attributes' => array( 'src' => 'https://code.jquery.com/jquery-2.1.4.min.js' )  ), 'jquery' );
     $page['#attached']['html_head'][] = array( array( '#tag' => 'script', '#attributes' => array( 'src' => 'http://atlantisjs.brafton.com/v1/atlantis.min.v1.3.js' )  ), 'atlantis_js' );
+  }
 
+  $page['#attached']['library'][] = 'brafton_importer/brafton_css';
+
+}
+
+function brafton_importer_element_info_alter(array &$types) {
+  if (isset($types['form'])) {
+ //   $types['form']['#attached']['library'][] = 'brafton_importer/brafton_css';
   }
 }
+
 
 ?>

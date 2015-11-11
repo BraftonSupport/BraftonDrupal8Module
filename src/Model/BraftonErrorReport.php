@@ -292,7 +292,7 @@ class BraftonErrorReport {
      */
     public function make_local_report($e, $errorLevel){
             $brafton_error = $this->b_e_log();
-            $trace = $e->getTrace();
+            $trace = $e->getTraceAsString();
        //     $trace = array_slice($array, 0, 3);
 
             $errorlog = array(
@@ -301,7 +301,7 @@ class BraftonErrorReport {
                 'Brand'     => $this->brand,
                 'client_sys_time'  => date('Y-m-d H:i:s'),
                 'error'     => get_class($e).' : '.$errorLevel.' | '.$e->getMessage().' in '.$e->getFile().' on line '.$e->getLine().' brafton_level '.$this->level.' in section '.$this->section,
-                'trace'     => serialize ($trace),
+                'trace'     => $trace,
             );
             $brafton_error[] = $errorlog;
             $brafton_error = $brafton_error;

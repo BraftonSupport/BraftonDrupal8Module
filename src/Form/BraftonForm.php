@@ -30,10 +30,10 @@ class BraftonForm extends ConfigFormBase {
       $errors = array_reverse($errors);
       foreach ($errors as $error) {
 
-        $trace_array = unserialize($error['trace']);
-       $trace_message = print_r($trace_array, true);
+      //  $trace_array = unserialize($error['trace']);
+      // $trace_message = print_r($trace_array, true);
 
-        $string .= $error['client_sys_time'] . ': ' . $error['error'] . '<br/> Trace: ' . $trace_message . '<br><br>';
+        $string .= $error['client_sys_time'] . ': ' . $error['error'] . '<br/> Trace: ' . $error['trace'] . '<br><br>';
       }
     }
     else {
@@ -128,6 +128,7 @@ class BraftonForm extends ConfigFormBase {
     // General Options
     $form['brafton_general_options'] = array(
       '#type' => 'details',
+      '#group' => 'vertical title',
       '#title' => 'General Options',
       '#description' => t('Configure the Brafton Importer here.'),
     );
@@ -387,11 +388,13 @@ class BraftonForm extends ConfigFormBase {
       '#title' => 'Error Reporting'
     );
     $form['brafton_error_options']['brafton_error_log'] = array(
-      '#type' => 'radio',
-      '#title' => t('Report Log'),
-      '#description' => $this->get_errors(),
-      '#format' => 'full_html',
-      '#default_value' => $config->get('brafton_importer.brafton_error_log')
+      '#type' => 'container',
+      '#attributes' => array(
+        'class' => 'brafton-error-log'
+      ),
+      '#markup' => $this->get_errors()
+
+
     );
     $form['brafton_error_options']['brafton_debug_mode'] = array(
       '#type' => 'radios',

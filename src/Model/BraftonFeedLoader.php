@@ -64,6 +64,8 @@ class BraftonFeedLoader {
      * @return void
      */
     public function display_import_message($import_list) {
+      $loop_section = $this->errors->get_section();
+      $this->errors->set_section('Display import message');
 
       $import_message = '<ul>';
       if ($import_list['items']) {
@@ -73,6 +75,8 @@ class BraftonFeedLoader {
       }
       $import_message .+ "</ul>";
       drupal_set_message(t("You imported " . $import_list['counter'] . " articles:" . $import_message));
+
+      $this->errors->set_section($loop_section);
     }
 
   /**
@@ -83,6 +87,9 @@ class BraftonFeedLoader {
    * @return array $cat_id_array Array of Drupal Tax term ids for individual article.
    */
   public function load_tax_terms($name_array) {
+    $loop_section = $this->errors->get_section();
+    $this->errors->set_section('Load tax terms');
+
     $vocab = 'brafton_tax';
     $cat_id_array = array();
     foreach($name_array as $name) {
@@ -104,6 +111,7 @@ class BraftonFeedLoader {
       $cat_id_array[] = $term_vid;
     }
     // returns array of unique term ids (vid).
+    $this->errors->set_section($loop_section);
     return $cat_id_array;
   }
 
@@ -147,8 +155,9 @@ class BraftonFeedLoader {
           return $new_user->id();
         }
       }
+      // if byline is chosen but doesn't exist, choose first user.
       else {
-        return $this->article_author_id;
+        return 1;
       }
     }
   }
