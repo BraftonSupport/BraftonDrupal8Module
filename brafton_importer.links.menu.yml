@@ -1,6 +1,6 @@
 brafton_importer.admin:
   title: 'Brafton Importer module settings'
-  description: 'example of how ot make an admin settings page link'
+  description: 'Configure the Brafton Importer'
   parent: system.admin_config_development
   route_name: brafton_importer.content
   weight: 100

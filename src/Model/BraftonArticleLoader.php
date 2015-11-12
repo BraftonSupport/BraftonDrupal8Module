@@ -36,6 +36,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
      * @return array $article_array Array containing individual NewsItem Objects.
      */
     public function get_article_feed($archive_url) {
+      $this->errors->set_section('Loading article feed');
 
       if ($archive_url) {
         $article_array = \Drupal\brafton_importer\APIClientLibrary\NewsItem::getNewsList( $archive_url,'html' );
@@ -55,7 +56,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
      * @return void
      */
     public function run_article_loop($article_array){
-
+      $this->errors->set_section('Master Article loop');
       $counter = 0;
       $import_list = array('items' => array(), 'counter' => $counter);
 
@@ -120,6 +121,9 @@ class BraftonArticleLoader extends BraftonFeedLoader{
      * @return array $image_info Array with url, alt, caption of image.
      */
     public function get_article_image($image) {
+      $loop_section = $this->errors->get_section();
+      $this->errors->set_section('Getting article image');
+
       if(!empty($image)) {
         $image_large = $image->getLarge();
         $image_info = array(
@@ -130,6 +134,8 @@ class BraftonArticleLoader extends BraftonFeedLoader{
       } else{
         $image_info = null;
       }
+
+      $this->errors->set_section($loop_section);
       return $image_info;
     }
 
@@ -141,6 +147,8 @@ class BraftonArticleLoader extends BraftonFeedLoader{
      * @return string $date The date in string form.
      */
     public function get_article_date($article) {
+      $loop_section = $this->errors->get_section();
+      $this->errors->set_section('Getting article date');
       switch($this->article_date_setting) {
         case 'published':
           $date = $article->getPublishDate();
@@ -154,6 +162,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         default:
           $date = $article->getPublishDate();
       }
+      $this->errors->set_section($loop_section);
       return $date;
     }
 
@@ -165,13 +174,16 @@ class BraftonArticleLoader extends BraftonFeedLoader{
    * @return array $name_array Array of strings (category names).
    */
   public function get_article_tax_names($categories) {
-    if ($this->category_switch == 'off') {
-      return array();
-    }
+    $loop_section = $this->errors->get_section();
+    $this->errors->set_section('Getting article category names.');
     $name_array = array();
-    foreach($categories as $category) {
-      $name_array[] = $category->getName();
+    if ($this->category_switch == 'on') {
+      foreach($categories as $category) {
+        $name_array[] = $category->getName();
+      }
     }
+
+    $this->errors->set_section($loop_section);
     return $name_array;
   }
 
@@ -183,6 +195,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
    * @return void
    */
   public function import_articles($archive_url) {
+    $this->errors->set_section('Import Article master method');
     $article_array = $this->get_article_feed($archive_url);
     $this->run_article_loop($article_array);
   }

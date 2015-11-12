@@ -123,9 +123,12 @@ class BraftonFeedLoader {
    * @return int $author_id The drupal user ID for the author.
    */
   public function get_author($byline) {
+    $loop_section = $this->errors->get_section();
+    $this->errors->set_section('Getting Byline.');
+
     // static existing drupal user chosen.
     if ($this->article_author_id != 0) {
-      return $this->article_author_id;
+      $author_id = $this->article_author_id;
     }
     // user selects Dynamic Authorship
     else {
@@ -152,14 +155,16 @@ class BraftonFeedLoader {
             );
           $new_user = \Drupal\user\Entity\User::create($fields);
           $new_user->save();
-          return $new_user->id();
+          $author_id = $new_user->id();
         }
       }
       // if byline is chosen but doesn't exist, choose first user.
       else {
-        return 1;
+        $author_id = 1;
       }
     }
+    $this->errors->set_section($loop_section);
+    return $author_id;
   }
 
 

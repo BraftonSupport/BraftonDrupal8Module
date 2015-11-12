@@ -64,15 +64,18 @@ class BraftonVideoLoader extends BraftonFeedLoader {
    * @return array $name_array The array of category names.
    */
   public function get_video_tax_names($brafton_id) {
-    if ( $this->category_switch == 'off' ) {
-      return array();
-    }
+    $loop_section = $this->errors->get_section();
+    $this->errors->set_section('Getting video category names');
     $name_array = array();
-    $cat_list = $this->categories->ListForArticle( $brafton_id,0,100 )->items;
-    foreach($cat_list as $cat) {
-      $cat_name = $this->categories->Get( $cat->id )->name;
-      $name_array[] = $cat_name;
+    if ( $this->category_switch == 'on' ) {
+      $cat_list = $this->categories->ListForArticle( $brafton_id,0,100 )->items;
+      foreach($cat_list as $cat) {
+        $cat_name = $this->categories->Get( $cat->id )->name;
+        $name_array[] = $cat_name;
+      }
     }
+
+    $this->errors->set_section($loop_section);
     return $name_array;
   }
 
@@ -82,6 +85,7 @@ class BraftonVideoLoader extends BraftonFeedLoader {
    * @return void
    */
   public function get_video_feed() {
+    $this->errors->set_section('Loading video feed');
     $this->video_client = new AdferoVideoClient($this->video_url, $this->public_key, $this->private_key);
     $this->client = new AdferoClient($this->video_url, $this->public_key, $this->private_key);
     $this->photo_client = new AdferoPhotoClient($this->photo_url);
@@ -105,6 +109,7 @@ class BraftonVideoLoader extends BraftonFeedLoader {
    * @return void
    */
   public function get_cta_info() {
+    $this->errors->set_section('Getting CTA info.');
     $this->pause_cta_text = $this->brafton_config->get( 'brafton_importer.brafton_video_pause_cta_text' );
     $this->pause_cta_link = $this->brafton_config->get( 'brafton_importer.brafton_video_pause_cta_link' );
     $this->end_cta_title = $this->brafton_config->get( 'brafton_importer.brafton_video_end_cta_title' );
@@ -126,8 +131,11 @@ class BraftonVideoLoader extends BraftonFeedLoader {
    * @return string Full source tag for video.
    */
   public function generate_source_tag($src, $resolution) {
+      $loop_section = $this->errors->get_section();
+      $this->errors->set_section('Generating source tag.');
       $tag = '';
       $ext = pathinfo($src, PATHINFO_EXTENSION);
+      $this->errors->set_section($loop_section);
       return sprintf('<source src="%s" type="video/%s" data-resolution="%s" />', $src, $ext, $resolution );
   }
 
@@ -139,6 +147,8 @@ class BraftonVideoLoader extends BraftonFeedLoader {
    * @return string $embed_code The full embed code containing the video.
    */
   public function create_embed($brafton_id) {
+    $loop_section = $this->errors->get_section();
+    $this->errors->set_section('Creating embed code');
     $this_article = $this->articles->Get($brafton_id);
 
     $presplash = $this_article->fields['preSplash'];
@@ -211,7 +221,7 @@ EOT;
     $embed_code .= $script;
     //Wraps a Div around the embed code
     $embed_code = "<div id='post-single-video'>" . $embed_code . "</div>";
-
+    $this->errors->set_section($loop_section);
     return $embed_code;
   }
 
@@ -223,12 +233,16 @@ EOT;
    * @return string $date The publish date
    */
   public function get_video_date($this_article) {
+    $loop_section = $this->errors->get_section();
+    $this->errors->set_section('Get video date.');
+
     if ($this->video_date_setting == 'lastmodified') {
       $date = strtotime($this_article->fields['lastModifiedDate']);
     }
     else {
       $date = strtotime($this_article->fields['date']);
     }
+    $this->errors->set_section($loop_section);
     return $date;
   }
 
@@ -238,6 +252,7 @@ EOT;
    * @return void
    */
   public function run_video_loop() {
+    $this->errors->set_section('Main video loop');
     $counter = 0;
     $import_list = array();
     foreach($this->article_list->items as $article) {
@@ -305,6 +320,9 @@ EOT;
    * @return array $image_info Array with image ulr, alt, caption
    */
   public function get_video_image($brafton_id) {
+    $loop_section = $this->errors->get_section();
+    $this->errors->set_section('Getting video image for ' . $brafton_id);
+
     $images = $this->photos->ListForArticle($brafton_id, 0, 100);
     if ($images->items) {
       $photo_id = $this->photos->Get($images->items[0]->id)->sourcePhotoId;
@@ -316,10 +334,12 @@ EOT;
     } else {
       $image_info = null;
     }
+    $this->errors->set_section($loop_section);
     return $image_info;
   }
 
   public function import_videos() {
+    $this->errors->set_section('Master video method');
     $this->get_video_feed();
     $this->run_video_loop();
   }

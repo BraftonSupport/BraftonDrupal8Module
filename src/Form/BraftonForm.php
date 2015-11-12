@@ -102,6 +102,12 @@ class BraftonForm extends ConfigFormBase {
     return 'brafton_form';
   }
 
+  public function display_errors_to_user() {
+    if(isset($_GET['b_error']) && $_GET['b_error'] == 'vital') {
+      drupal_set_message(t('There was a fatal error when running the importer.'), 'error');
+    }
+  }
+
   /**
    * {@inheritdoc}
    *
@@ -114,8 +120,9 @@ class BraftonForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildForm($form, $form_state);
-    $config = $this->config('brafton_importer.settings');
 
+    $this->display_errors_to_user();
+    $config = $this->config('brafton_importer.settings');
     $connection = \Drupal\Core\Database\Database::getConnection();
     $results = $connection->query("SELECT uid, name FROM {users_field_data} WHERE status=1");
     $user_array = $results->fetchAllKeyed();
