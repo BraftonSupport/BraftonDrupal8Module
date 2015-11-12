@@ -7,6 +7,8 @@
 
 namespace Drupal\brafton_importer\RCClientLibrary\AdferoArticlesVideoExtensions\VideoOutputs;
 
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\AdferoHelpers;
+
 require_once dirname(__FILE__) . '/../../AdferoArticles/AdferoHelpers.php';
 require_once dirname(__FILE__) . '/AdferoVideoOutput.php';
 require_once dirname(__FILE__) . '/AdferoVideoOutputListItem.php';
@@ -84,15 +86,15 @@ class AdferoVideoOutputsClient {
      */
     public function ListForArticle($articleId, $offset, $limit) {
         if (!isset($articleId)) {
-            throw new InvalidArgumentException("articleId is required");
+            throw new \InvalidArgumentException("articleId is required");
         }
 
         if (!isset($offset)) {
-            throw new InvalidArgumentException("offset is required");
+            throw new \InvalidArgumentException("offset is required");
         }
 
         if (!isset($limit)) {
-            throw new InvalidArgumentException("limit is required");
+            throw new \InvalidArgumentException("limit is required");
         }
 
         return $this->ListVideoOutputsForArticle($articleId, $offset, $limit, null, null);

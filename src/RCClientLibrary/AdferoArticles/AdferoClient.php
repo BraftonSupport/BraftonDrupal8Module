@@ -7,6 +7,11 @@
 
 namespace Drupal\brafton_importer\RCClientLibrary\AdferoArticles;
 
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\Feeds\AdferoFeedsClient;
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\Articles\AdferoArticlesClient;
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\ArticlePhotos\AdferoArticlePhotosClient;
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\Categories\AdferoCategoriesClient;
+
 include_once dirname(__FILE__) . '/AdferoCredentials.php';
 include_once dirname(__FILE__) . '/Articles/AdferoArticlesClient.php';
 include_once dirname(__FILE__) . '/ArticlePhotos/AdferoArticlePhotosClient.php';
@@ -33,7 +38,7 @@ class AdferoClient {
      */
     function __construct($baseUri, $publicKey, $secretKey) {
         if (!preg_match('|^http://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $baseUri)) {
-            throw new InvalidArgumentException('Not a valid uri');
+            throw new \InvalidArgumentException('Not a valid uri');
         };
         if (!preg_match('/\/$/', $baseUri)) {
             $baseUri = $baseUri . '/';

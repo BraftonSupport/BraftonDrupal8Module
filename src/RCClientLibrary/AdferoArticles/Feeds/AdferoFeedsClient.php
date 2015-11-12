@@ -7,6 +7,8 @@
 
 namespace Drupal\brafton_importer\RCClientLibrary\AdferoArticles\Feeds;
 
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\AdferoHelpers;
+
 include_once dirname(__FILE__) . '/../AdferoHelpers.php';
 include_once dirname(__FILE__) . '/AdferoFeed.php';
 include_once dirname(__FILE__) . '/AdferoFeedListItem.php';
@@ -244,7 +246,7 @@ class AdferoFeedsClient {
      * @return AdferoFeedList
      */
     private function ListFeedsFromXmlString($xml) {
-        $xml = new SimpleXMLElement($xml);
+        $xml = new \SimpleXMLElement($xml);
         $totalCount = intval($xml->feeds['totalCount']);
         $feedItems = array();
 

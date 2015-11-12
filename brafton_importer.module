@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * @file
+ *  The main file for the Brafton Importer module
+ */
+
+/**
+ * Implements hook_cron().
+ *
+ * Imports XML articles on schedule.
+ *
+ * @return void
+ */
+function brafton_importer_cron() {
+
+//  $queue = \Drupal::queue('brafton_cron');
+
+//  \Drupal\brafton_importer\BraftonImporterService::createBraftonArticle();
+
+//  \Drupal::service('brafton_importer.brafton_importer_service')->createBraftonArticle();
+
+    $config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
+
+    if ($config->get('brafton_importer.brafton_general_switch')) {
+
+      if($config->get('brafton_importer.brafton_article_switch')) {
+        $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
+        $article_loader->run_article_loop(null);
+      }
+
+      if($config->get('brafton_importer.brafton_video_switch')) {
+        $video_loader = new \Drupal\brafton_importer\Model\BraftonVideoLoader();
+        $video_loader->run_video_loop();
+      }
+
+    }
+
+
+
+}
+
+
+/**
+ * Implements hook_page_attachments_alter
+ *
+ * Puts Atlantis css and js in head section. Drupal way is to use library.yml file but it only injects at end of page.
+ *
+ * @param array &$page The Drupal render array for a page.
+ *
+ * @return void
+ */
+function brafton_importer_page_attachments_alter(array &$page) {
+  $config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
+  if( $config->get('brafton_importer.brafton_video_atlantis_switch') ) {
+
+    $page['#attached']['html_head_link'][] = array( array( 'rel' => 'stylesheet', 'href' => 'http://atlantisjs.brafton.com/v1/atlantisjsv1.3.css'  ), 'atlantis_css' );
+    $page['#attached']['html_head'][] = array( array( '#tag' => 'script', '#attributes' => array( 'src' => 'https://code.jquery.com/jquery-2.1.4.min.js' )  ), 'jquery' );
+    $page['#attached']['html_head'][] = array( array( '#tag' => 'script', '#attributes' => array( 'src' => 'http://atlantisjs.brafton.com/v1/atlantis.min.v1.3.js' )  ), 'atlantis_js' );
+  }
+
+  $page['#attached']['library'][] = 'brafton_importer/brafton_css';
+
+}
+
+function brafton_importer_element_info_alter(array &$types) {
+  if (isset($types['form'])) {
+ //   $types['form']['#attached']['library'][] = 'brafton_importer/brafton_css';
+  }
+}
+
+
+?>

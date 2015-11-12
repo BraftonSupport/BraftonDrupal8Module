@@ -4,6 +4,8 @@
  *  The install file for the brafton_importer module.
  */
 
+$install = new brafton_importer_install();
+
 /**
  * Class wrapper for install methods.
  */
@@ -23,47 +25,53 @@ class brafton_importer_install {
     $this->bind_brafton_node_fields_to_node_type();
     $this->display_brafton_fields_in_form_view();
     $this->display_brafton_fields_in_node_view();
+    $this->set_default_configs();
   }
 
 
   /**
-   *  This creates the brafton node type.
+   * This creates the brafton node types.
    *
    * @return void
    */
   function create_brafton_node_type() {
-
     // Check if node type exists. If not, create it.
     if ( \Drupal\node\Entity\NodeType::load('brafton_article') == FALSE ) {
-      // Provides info about the Brafton content type.
       $brafton_node_type_info = array(
         'name' => t('Brafton Article'),
         'type' => 'brafton_article',
         'description' => t('Articles from your Brafton Feed.'),
         'has_title' => TRUE,
       );
-
       $brafton_node_type = \Drupal\node\Entity\NodeType::create($brafton_node_type_info);
       $brafton_node_type->save();
     }
-
+    // Check if video node type exists. If not, create it.
+    if ( \Drupal\node\Entity\NodeType::load('brafton_video') == FALSE ) {
+      $brafton_node_type_info = array(
+        'name' => t('Brafton Video'),
+        'type' => 'brafton_video',
+        'description' => t('Video articles from your Brafton Feed.'),
+        'has_title' => TRUE,
+      );
+      $brafton_node_type = \Drupal\node\Entity\NodeType::create($brafton_node_type_info);
+      $brafton_node_type->save();
+    }
   }
 
   /**
-   *  This creates the brafton taxonomy.
+   * This creates the brafton taxonomy type.
    *
    * @return void
    */
   function create_brafton_tax() {
     // Check if taxonomy exists. If not, create it.
     if ( \Drupal\taxonomy\Entity\Vocabulary::load('brafton_tax') == FALSE ) {
-      // Defines taxonomy info.
       $brafton_vocab_info = array(
         'name' => t('Brafton Categories'),
         'vid' => 'brafton_tax',
         'description' => t('Categories for Brafton articles'),
       );
-
       // Creates new taxonomy.
       $brafton_tax = \Drupal\taxonomy\Entity\Vocabulary::create($brafton_vocab_info);
       $brafton_tax->save();
@@ -71,7 +79,7 @@ class brafton_importer_install {
   }
 
   /**
-   *  This creates the fields for the brafton node type.
+   * This creates the brafton node fields.
    *
    * @return void
    */
@@ -97,23 +105,32 @@ class brafton_importer_install {
         'field_name' => 'field_brafton_term',
         'entity_type' => 'node',
         'type' => 'entity_reference',
+        'cardinality' => -1,
         'settings' => array(
           'target_type' => 'taxonomy_term',
         ),
       ),
+      'field_brafton_comment' => array(
+        'field_name' => 'field_brafton_comment',
+        'entity_type' => 'node',
+        'type' => 'comment',
+      ),
+      'field_brafton_video' => array(
+        'field_name' => 'field_brafton_video',
+        'entity_type' => 'node',
+        'type' => 'text_long',
+      ),
     );
-
     // Create the fields
     foreach ($fields as $field) {
       if ( empty(\Drupal::entityManager()->getStorage('field_storage_config')->loadByProperties(array('field_name' => $field['field_name']))) ) {
         \Drupal::entityManager()->getStorage('field_storage_config')->create($field)->save();
       }
     }
-
   }
 
   /**
-   *  This binds the fields to the brafton node type.
+   * This binds the fields to the brafton_article or brafton_video node type.
    *
    * @return void
    */
@@ -157,11 +174,80 @@ class brafton_importer_install {
           ),
         ),
       ),
+      'field_brafton_comment' => array(
+        'field_name' => 'field_brafton_comment',
+        'bundle' => 'brafton_article',
+        'label' => t('Comments'),
+        'entity_type' => 'node',
+        'description' => t('Comments for Brafton articles'),
+        'default_value' => array(
+          'status' => 0,
+        ),
+      ),
+      //VIDEOS
+      'video_field_brafton_image' => array(
+        'field_name' => 'field_brafton_image',
+        'bundle' => 'brafton_video',
+        'label' => t('Featured Image'),
+        'entity_type' => 'node',
+        'description' => t( 'Upload an image to go with this video article.' ),
+      ),
+      'video_field_brafton_id' => array(
+        'field_name' => 'field_brafton_id',
+        'bundle' => 'brafton_video',
+        'label' => t('Brafton ID'),
+        'entity_type' => 'node',
+        'description' => t('The unique Brafton ID'),
+      ),
+      'video_field_brafton_body' => array(
+        'field_name' => 'field_brafton_body',
+        'bundle' => 'brafton_video',
+        'label' => t('Body'),
+        'entity_type' => 'node',
+        'description' => t('The content of the video article'),
+      ),
+      'video_field_brafton_term' => array(
+        'field_name' => 'field_brafton_term',
+        'bundle' => 'brafton_video',
+        'label' => t('Categories'),
+        'entity_type' => 'node',
+        'description' => t('The category or tags of the video article'),
+        'settings' => array(
+          'handler' => 'default:taxonomy_term',
+          'handler_settings' => array(
+            'target_bundles' => array(
+              'brafton_tax' => 'brafton_tax'
+            ),
+            'auto_create' => 'true'
+          ),
+        ),
+      ),
+      'video_field_brafton_comment' => array(
+        'field_name' => 'field_brafton_comment',
+        'bundle' => 'brafton_video',
+        'label' => t('Comments'),
+        'entity_type' => 'node',
+        'description' => t('Comments for Brafton video articles'),
+        'default_value' => array(
+          'status' => 0,
+        ),
+      ),
+      'field_brafton_video' => array(
+        'field_name' => 'field_brafton_video',
+        'bundle' => 'brafton_video',
+        'label' => t('Video'),
+        'entity_type' => 'node',
+        'description' => t('Field for Brafton video'),
+      ),
+
     );
 
     // Create the field bindings
     foreach ($instances as $instance) {
-      if ( empty(\Drupal::entityManager()->getStorage('field_config')->loadByProperties(array('field_name' => $instance['field_name']))) ) {
+      if ( empty(\Drupal::entityManager()->getStorage('field_config')->loadByProperties(array(
+        'field_name' => $instance['field_name'],
+        'bundle' => $instance['bundle'],
+        ))) ) {
         \Drupal::entityManager()->getStorage('field_config')->create($instance)->save();
       }
     }
@@ -179,7 +265,8 @@ class brafton_importer_install {
       'field_brafton_image' => 'image_image',
       'field_brafton_id' => 'number',
       'field_brafton_body' => 'text_textarea_with_summary',
-      'field_brafton_term' => 'entity_reference_autocomplete_tags'
+      'field_brafton_term' => 'entity_reference_autocomplete_tags',
+      'field_brafton_comment' => 'comment_default',
     );
 
     foreach($field_form_view_types as $field => $field_value) {
@@ -189,6 +276,25 @@ class brafton_importer_install {
         ))
         ->save();
     }
+
+    //Videos
+    $field_form_view_types = array(
+      'field_brafton_image' => 'image_image',
+      'field_brafton_id' => 'number',
+      'field_brafton_body' => 'text_textarea_with_summary',
+      'field_brafton_term' => 'entity_reference_autocomplete_tags',
+      'field_brafton_comment' => 'comment_default',
+      'field_brafton_video' => 'text_textarea',
+    );
+
+    foreach($field_form_view_types as $field => $field_value) {
+      entity_get_form_display('node', 'brafton_video', 'default')
+        ->setComponent($field, array(
+          'type' => $field_value,
+        ))
+        ->save();
+    }
+
   }
 
   /**
@@ -199,23 +305,125 @@ class brafton_importer_install {
   function display_brafton_fields_in_node_view() {
 
     $field_node_view_types = array(
-      'field_brafton_image' => 'image',
-      'field_brafton_id' => 'number_integer',
-      'field_brafton_body' => 'text_default',
-      'field_brafton_term' => 'entity_reference_label'
+      'field_brafton_image' => array(
+        'type' => 'image',
+        'label' => 'hidden',
+      ),
+      'field_brafton_body' => array(
+        'type' => 'text_default',
+        'label' => 'hidden',
+      ),
+      'field_brafton_term' => array(
+        'type' => 'entity_reference_label',
+        'label' => 'above',
+      ),
+      'field_brafton_comment' => array(
+        'type' => 'comment_default',
+        'label' => 'above',
+      ),
+  //  'field_brafton_id' => 'number_integer',
     );
 
     foreach($field_node_view_types as $field => $field_value) {
       entity_get_display('node', 'brafton_article', 'default')
         ->setComponent($field, array(
-          'type' => $field_value,
+          'type' => $field_value['type'],
+          'label' => $field_value['label'],
         ))
         ->save();
     }
+
+    // Videos
+    $field_node_view_types = array(
+      'field_brafton_image' => array(
+        'type' => 'image',
+        'label' => 'hidden',
+      ),
+      'field_brafton_body' => array(
+        'type' => 'text_default',
+        'label' => 'hidden',
+      ),
+      'field_brafton_term' => array(
+        'type' => 'entity_reference_label',
+        'label' => 'above',
+      ),
+      'field_brafton_comment' => array(
+        'type' => 'comment_default',
+        'label' => 'above',
+      ),
+      'field_brafton_video' => array(
+        'type' => 'text_default',
+        'label' => 'hidden',
+      ),
+    );
+
+    foreach($field_node_view_types as $field => $field_value) {
+      entity_get_display('node', 'brafton_video', 'default')
+        ->setComponent($field, array(
+          'type' => $field_value['type'],
+          'label' => $field_value['label'],
+        ))
+        ->save();
+    }
+
+
+
+    // For Article Teaser View
+    entity_get_display('node', 'brafton_article', 'teaser')
+      ->setComponent('field_brafton_body', array(
+        'type' => 'text_summary_or_trimmed',
+        'label' => 'hidden',
+      ))->save();
+    entity_get_display('node', 'brafton_article', 'teaser')
+      ->setComponent('field_brafton_image', array(
+        'type' => 'image',
+        'label' => 'hidden',
+      ))->save();
+    entity_get_display('node', 'brafton_article', 'teaser')
+      ->setComponent('field_brafton_term', array(
+        'type' => 'entity_reference_label',
+        'label' => 'above',
+      ))->save();
+
+    // Video Teasers
+    entity_get_display('node', 'brafton_video', 'teaser')
+      ->setComponent('field_brafton_body', array(
+        'type' => 'text_summary_or_trimmed',
+        'label' => 'hidden',
+      ))->save();
+    entity_get_display('node', 'brafton_video', 'teaser')
+      ->setComponent('field_brafton_image', array(
+        'type' => 'image',
+        'label' => 'hidden',
+      ))->save();
+    entity_get_display('node', 'brafton_video', 'teaser')
+      ->setComponent('field_brafton_term', array(
+        'type' => 'entity_reference_label',
+        'label' => 'above',
+      ))->save();
+
+  }
+
+  /**
+   * Sets default admin configs.
+   *
+   * @return void
+   */
+  function set_default_configs() {
+    $brafton_config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
+    $brafton_config->set('brafton_importer.brafton_general_switch', 0);
+    $brafton_config->set('brafton_importer.brafton_article_switch', 0);
+    $brafton_config->set('brafton_importer.brafton_video_switch', 0);
+    $brafton_config->set('brafton_importer.brafton_publish_date', 'published');
+    $brafton_config->set('brafton_importer.brafton_video_publish_date', 'published');
+    $brafton_config->set('brafton_importer.brafton_publish', '1');
+    $brafton_config->set('brafton_importer.brafton_video_feed_number', '0');
+    $brafton_config->set('brafton_importer.brafton_video_atlantis_switch', 0);
+    $brafton_config->set('brafton_importer.brafton_cta_switch', 0);
+    $brafton_config->set('brafton_importer.brafton_debug_mode', 0);
+    $brafton_config->set('brafton_importer.brafton_category_switch', 'on')->save();
   }
 }
-
-$install = new brafton_importer_install();
 
 ?>
 

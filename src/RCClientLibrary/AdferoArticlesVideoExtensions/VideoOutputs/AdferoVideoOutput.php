@@ -7,6 +7,8 @@
 
 namespace Drupal\brafton_importer\RCClientLibrary\AdferoArticlesVideoExtensions\VideoOutputs;
 
+use Drupal\brafton_importer\RCClientLibrary\AdferoArticles\AdferoEntityBase;
+
 include_once dirname(__FILE__) . '/../../AdferoArticles/AdferoEntityBase.php';
 
 /**
