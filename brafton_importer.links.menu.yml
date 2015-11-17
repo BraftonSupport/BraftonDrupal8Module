@@ -1,6 +1,6 @@
 brafton_importer.admin:
   title: 'Brafton Importer module settings'
   description: 'Configure the Brafton Importer'
-  parent: system.admin_config_development
+  parent: system.admin_config_content
   route_name: brafton_importer.content
   weight: 100
