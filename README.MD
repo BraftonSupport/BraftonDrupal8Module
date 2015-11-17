@@ -22,24 +22,27 @@ PHP:
 
 ##Basic Setup
 
-1. In the Drupal admin bar, click the "Configuration" button.
-2. Find the link for "Brafton Importer module settings" and click it. This brings you to the Brafton Importer config page (example.com/admin/config/content/brafton).
+- In the Drupal admin bar, click the "Configuration" button.
+- Find the link for "Brafton Importer module settings" and click it. This brings you to the Brafton Importer config page (example.com/admin/config/content/brafton).
 
 **Under "General Options"**
-3. Turn "Master Importer Status" to "On".
-4. Set your "API Root" to be either "Brafton", "ContentLead", or "Castleford".
+
+- Turn "Master Importer Status" to "On".
+- Set your "API Root" to be either "Brafton", "ContentLead", or "Castleford".
 
 **Under "Article Options"**
-5. Turn "Article importer status" to "On".
-6. Enter your  API key in the "API key" field.
+
+- Turn "Article importer status" to "On".
+- Enter your  API key in the "API key" field.
 
 **Under "Video Options" (if applicable)**
-7. Turn "Video importer status" to "On".
-8. Enter your public key in the "Public Key" field.
-9. Enter your private key in the "Private Key" field.
-10. Enter your feed number in the "Feed Number" field.
 
-11. Scroll to the bottom and click the "Save configuration" button.
+- Turn "Video importer status" to "On".
+- Enter your public key in the "Public Key" field.
+- Enter your private key in the "Private Key" field.
+- Enter your feed number in the "Feed Number" field.
+
+- **Scroll to the bottom and click the "Save configuration" button.**
 
 Now your site is set to import content every time the Drupal Cron runs (default is every 3 hours), which can be configured at example.com/admin/config/system/cron.
 
