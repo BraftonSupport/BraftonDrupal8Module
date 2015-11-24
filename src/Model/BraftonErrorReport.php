@@ -186,6 +186,7 @@ class BraftonErrorReport {
      * @param obj $e
      * @return boolean
      */
+    //@Ed these are the wordpress errors clear these out and add any if they exist for drupal, install multiple modules and monitor for conflicts.
     public function check_known_errors($e){
         switch(basename($e->getFile())){
             case 'link-template.php':

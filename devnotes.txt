@@ -1,0 +1,45 @@
+DevelopmentNotes:
+
+src->form->braftonform.php : 
+    still need to delete text field for email (dk deleted)
+    use validation for checking if api key is set if using article and public and private keys are set if videos importing.  I have already removed the email validation part 
+
+config->optional->views.view.brafton_categories.yml :
+    Needed block description (dk added)
+    
+src->model->braftonarticleloader :
+    Castleford doesn't always use the extract field, you need a switch to look for htmlmetadescription, I recommend a terinary for brevity.
+    reset run_loop section to "individual article loop {brafton_id}" this lets us know what article we are importing and so what article specifically is giving us the error.
+    //@ED do a check for if there is anything in image , you do this for videos but ommit it for articles, you don't want incorrect data populating the fields if no data exists.
+    Side note: don't use full expressions for simple mathmatics ie $counter = $counter + 1;  use ++$counter; this increases counter by 1;
+    
+src->model->braftonerrorreport.php  
+    check_known_errors should be know drupal 8 errors remove the wordpress errors 
+    Nothing in here turns on debug mode if a vital error is thrown please correct that.  
+    
+src->model->braftonfeedloader.php
+              line 163 //do not hard code for use id 1, as it may be deleted set to a anonomys author which i beleive if the same from durpal 7 is 0 but you should double check that.
+    
+src->model->braftonvideoloader
+    move the get_cta_optins to the constructor so we only call this method once, since you are settting up the ctas a properties.  this way if the cta_options is on than we only need to executre 1 time. (dk already did)
+    line 237 since there are only 2 date options here a terinary really would be better, you get 11 lines of code condensed down to 1 line ie 
+    $date = $this->video_date_settings == 'lastmodified'? strtotime($this_article->fields['lastModifiedDate']) : strtotime($this_article->fields['date']) ;
+    moved import_videos to the top as it is first executed.
+    
+src->braftonimporterservice.php
+    it doesn't appear we are using this at all any longer, can we delete the file????
+    
+In General attempt to strucuture your classes in the order the operations will be performed. ie Import Articles happens before run_loop and should appear first in the heirarchy.
+
+
+Controller notes:
+
+There should be 2 new methods here
+
+run article and run videos
+the module should run those methods accordingling and the controller should delagate to the models needed to perform functions that are needed.  the same goes for the form.  the only thing talking to the models should be the controller
+neither the form nor the module file should have any contact with models at all.  please restructure.
+
+
+
+    

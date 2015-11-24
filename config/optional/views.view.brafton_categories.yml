@@ -9,7 +9,7 @@ dependencies:
 id: brafton_categories
 label: 'Brafton Categories'
 module: views
-description: ''
+description: 'Display Category lists'
 tag: ''
 base_table: taxonomy_term_field_data
 base_field: tid

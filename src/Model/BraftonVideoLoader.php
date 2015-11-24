@@ -54,6 +54,14 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     $this->video_date_setting = $this->brafton_config->get('brafton_importer.brafton_video_publish_date');
     $this->video_author_id = $this->brafton_config->get('brafton_importer.brafton_video_author');
     $this->cta_option = $this->brafton_config->get('brafton_importer.brafton_cta_switch');
+      if($this->cta_option){
+          $this->get_cta_info();
+      }
+  }
+  public function import_videos() {
+    $this->errors->set_section('Master video method');
+    $this->get_video_feed();
+    $this->run_video_loop();
   }
 
   /**
@@ -148,7 +156,7 @@ class BraftonVideoLoader extends BraftonFeedLoader {
    */
   public function create_embed($brafton_id) {
     $loop_section = $this->errors->get_section();
-    $this->errors->set_section('Creating embed code');
+    $this->errors->set_section('Creating embed code for '.$brafton_id);
     $this_article = $this->articles->Get($brafton_id);
 
     $presplash = $this_article->fields['preSplash'];
@@ -174,7 +182,6 @@ class BraftonVideoLoader extends BraftonFeedLoader {
 
     // CTA stuff here
     if($this->cta_option){
-      $this->get_cta_info();
       $marpro = '';
       if($this->pause_asset_id != ''){
           $marpro = "assetGateway: { id: '$this->pause_asset_id' },";
@@ -232,6 +239,7 @@ EOT;
    *
    * @return string $date The publish date
    */
+    //@Ed since there are only 2 date options here a terinary really would be better, you get 11 lines of code condensed down to 1 line ie $date = $this->video_date_settings == 'lastmodified'? strtotime($this_article->fields['lastModifiedDate']) : strtotime($this_article->fields['date']) ;
   public function get_video_date($this_article) {
     $loop_section = $this->errors->get_section();
     $this->errors->set_section('Get video date.');
@@ -305,7 +313,7 @@ EOT;
         'url' => $new_node->url()
       );
 
-      $counter = $counter + 1;
+      ++$counter;
     }
     $import_list['counter'] = $counter;
     $this->display_import_message($import_list);
@@ -337,11 +345,4 @@ EOT;
     $this->errors->set_section($loop_section);
     return $image_info;
   }
-
-  public function import_videos() {
-    $this->errors->set_section('Master video method');
-    $this->get_video_feed();
-    $this->run_video_loop();
-  }
-
 }
