@@ -27,7 +27,19 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         $this->article_date_setting = $this->brafton_config->get('brafton_importer.brafton_publish_date');
         $this->article_author_id = $this->brafton_config->get('brafton_importer.brafton_article_author');
     }
-
+    
+    /**
+    * Final method used to import articles.
+    *
+    * @param string $archive_url The local file url for an uploaded XML archive. Null for non-archive article importing.
+    *
+    * @return void
+    */
+    public function import_articles($archive_url) {
+        $this->errors->set_section('Import Article master method');
+        $article_array = $this->get_article_feed($archive_url);
+        $this->run_article_loop($article_array);
+    }
     /**
      * Get the Articles feed using the XML API.
      *
@@ -56,13 +68,12 @@ class BraftonArticleLoader extends BraftonFeedLoader{
      * @return void
      */
     public function run_article_loop($article_array){
-      $this->errors->set_section('Master Article loop');
       $counter = 0;
       $import_list = array('items' => array(), 'counter' => $counter);
 
       foreach ($article_array as $article) {
-
         $brafton_id = $article->getId();
+        $this->errors->set_section('Individual Article loop for '.$brafton_id);
         $existing_posts = $this->brafton_post_exists($brafton_id);
 
         if ( $this->overwrite == 1 && !empty($existing_posts) ) {
@@ -82,7 +93,9 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         $category_ids = $this->load_tax_terms($category_names);
         $title = $article->getHeadline();
         $body = $article->getText();
+          //@Ed Castleford doesn't alway use extract you need to account for a switch here for htmlmetadescription field 
         $summary = $article->getExtract();
+          //@Ed you need to account for no photo.. this throws an error if there isn't a photo
         $image = $this->get_article_image($article->getPhotos()[0]);
         $new_node->status = $this->publish_status;
         $new_node->title = $title;
@@ -95,6 +108,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         );
         $new_node->field_brafton_id = $brafton_id;
         $new_node->field_brafton_term = $category_ids;
+          //@ED do a check for if there is anything in image 
         $new_node->field_brafton_image = system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE );
         $new_node->field_brafton_image->alt = $image['alt'];
 
@@ -104,7 +118,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
           'title' => $title,
           'url' => $new_node->url()
         );
-        $counter = $counter + 1;
+        ++$counter;
       }
 
       $import_list['counter'] = $counter;
@@ -185,19 +199,6 @@ class BraftonArticleLoader extends BraftonFeedLoader{
 
     $this->errors->set_section($loop_section);
     return $name_array;
-  }
-
-  /**
-   * Final method used to import articles.
-   *
-   * @param string $archive_url The local file url for an uploaded XML archive. Null for non-archive article importing.
-   *
-   * @return void
-   */
-  public function import_articles($archive_url) {
-    $this->errors->set_section('Import Article master method');
-    $article_array = $this->get_article_feed($archive_url);
-    $this->run_article_loop($article_array);
   }
 
 }

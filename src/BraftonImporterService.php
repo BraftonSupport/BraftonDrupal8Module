@@ -4,25 +4,12 @@
  * @file
  * Contains Drupal\brafton_importer\BraftonImporterService
  */
-
+//@Ed can this file be deleted???
 namespace Drupal\brafton_importer;
 
 use Drupal\brafton_importer\APIClientLibrary\ApiHandler;
 
-//require_once dirname(__FILE__) . '/APIClientLibrary/ApiHandler.php';
-
 class BraftonImporterService {
-
-  protected $demo_value;
-
-  public function __construct() {
-    $this->demo_value = 'Upchuk';
-  }
-
-  public function getDemoValue() {
-    return $this->demo_value;
-  }
-
 
  /**
    * Creates a Brafton article.
@@ -38,12 +25,6 @@ class BraftonImporterService {
     $article_array = $connection->getNewsHTML();
 
     foreach($article_array as $article) {
-
-      // $results = $connection->query("SELECT uid, name FROM {users_field_data} WHERE status=1");
-
-      // $db_connection = \Drupal\Core\Database\Database::getConnection();
-      // $result = $db_connection->query("SELECT ")
-
       $categories = \Drupal\brafton_importer\BraftonImporterService::set_article_categories($article);
       $title = $article->getHeadline();
       $body = $article->getText();
