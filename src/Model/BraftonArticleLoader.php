@@ -95,7 +95,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         $body = $article->getText();
           //@Ed Castleford doesn't alway use extract you need to account for a switch here for htmlmetadescription field 
         $summary = $article->getExtract();
-          
+          //@Ed you need to account for no photo.. this throws an error if there isn't a photo
         $image = $this->get_article_image($article->getPhotos()[0]);
         $new_node->status = $this->publish_status;
         $new_node->title = $title;
