@@ -42,7 +42,7 @@ PHP:
 - Enter your private key in the "Private Key" field.
 - Enter your feed number in the "Feed Number" field.
 
-- **Scroll to the bottom and click the "Save configuration" button.**
+**Scroll to the bottom and click the "Save configuration" button.**
 
 Now your site is set to import content every time the Drupal Cron runs (default is every 3 hours), which can be configured at example.com/admin/config/system/cron.
 
