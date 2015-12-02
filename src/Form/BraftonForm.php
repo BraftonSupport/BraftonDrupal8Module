@@ -184,12 +184,6 @@ class BraftonForm extends ConfigFormBase {
       ),
       '#default_value' => $config->get('brafton_importer.brafton_publish'),
     );
-    //@ED Delete this
-    $form['brafton_general_options']['email'] = array(
-      '#type' => 'email',
-      '#title' => $this->t('Your .com email address.'),
-      '#default_value' => $config->get('brafton_importer.email')
-    );
 
     // Article Options
 
@@ -445,14 +439,10 @@ class BraftonForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    *
-   * Adds additional validation of .com email address.
+   * Adds validation 
+   * @ToDo : create validation check for status of article - ensure api key has been set check for status of video - ensure public and private keys have been set.
    */
-    //@ED delete this
-  public function validateForm(array &$form, FormStateInterface $form_state) {
-    if (strpos($form_state->getValue('email'), '.com') === FALSE) {
-      $form_state->setErrorByName('email', $this->t('This is not a .com email address.'));
-    }
-  }
+  public function validateForm(array &$form, FormStateInterface $form_state) {  }
 
 
 
