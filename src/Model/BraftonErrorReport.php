@@ -189,16 +189,11 @@ class BraftonErrorReport {
     //@Ed these are the wordpress errors clear these out and add any if they exist for drupal, install multiple modules and monitor for conflicts.
     public function check_known_errors($e){
         switch(basename($e->getFile())){
+            /* Wordpress example
             case 'link-template.php':
             return false;
-            break;
-            case 'post.php':
-            return false;
-            break;
-            case 'class-wp-image-editor-imagick.php':
-            return false;
-            break;
-            case 'translation-management.class.php':
+            break; */
+            case 'Html.php':
             return false;
             break;
             default:
@@ -232,7 +227,7 @@ class BraftonErrorReport {
                  * CMS Specific: Handle how to make a report to Brafton Servers Here.  Be sure to Turn Debug Mode "ON"
                  * automatically.
                  */
-
+                $this->brafton_config->set('brafton_importer.brafton_debug_mode', 1)->save();
                 $append = '?b_error=vital';
                 if($this->domain != 'localhost'){
                     $this->send_remote_report($errorlog);
@@ -294,8 +289,6 @@ class BraftonErrorReport {
      */
     public function make_local_report($e, $errorLevel){
             $brafton_error = $this->b_e_log();
-            $trace = $e->getTraceAsString();
-       //     $trace = array_slice($array, 0, 3);
 
             $errorlog = array(
                 'Domain'    => $this->domain,
@@ -303,7 +296,6 @@ class BraftonErrorReport {
                 'Brand'     => $this->brand,
                 'client_sys_time'  => date('Y-m-d H:i:s'),
                 'error'     => get_class($e).' : '.$errorLevel.' | '.$e->getMessage().' in '.$e->getFile().' on line '.$e->getLine().' brafton_level '.$this->level.' in section '.$this->section,
-                'trace'     => $trace,
             );
             $brafton_error[] = $errorlog;
             $brafton_error = $brafton_error;

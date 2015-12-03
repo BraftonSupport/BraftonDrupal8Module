@@ -27,7 +27,7 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         $this->article_date_setting = $this->brafton_config->get('brafton_importer.brafton_publish_date');
         $this->article_author_id = $this->brafton_config->get('brafton_importer.brafton_article_author');
     }
-    
+
     /**
     * Final method used to import articles.
     *
@@ -93,10 +93,12 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         $category_ids = $this->load_tax_terms($category_names);
         $title = $article->getHeadline();
         $body = $article->getText();
-          //@Ed Castleford doesn't alway use extract you need to account for a switch here for htmlmetadescription field 
-        $summary = $article->getExtract();
-          //@Ed you need to account for no photo.. this throws an error if there isn't a photo
-        $image = $this->get_article_image($article->getPhotos()[0]);
+        $summary = ( !empty($article->getExtract()) ? $article->getExtract() : $article->getHtmlMetaDescription() );
+        if (!empty($article->getPhotos())) {
+          $image = $this->get_article_image($article->getPhotos()[0]);
+          $new_node->field_brafton_image = system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE );
+          $new_node->field_brafton_image->alt = $image['alt'];
+        }
         $new_node->status = $this->publish_status;
         $new_node->title = $title;
         $new_node->uid = $author_id;
@@ -108,9 +110,6 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         );
         $new_node->field_brafton_id = $brafton_id;
         $new_node->field_brafton_term = $category_ids;
-          //@ED do a check for if there is anything in image 
-        $new_node->field_brafton_image = system_retrieve_file( $image['url'], NULL, TRUE, FILE_EXISTS_REPLACE );
-        $new_node->field_brafton_image->alt = $image['alt'];
 
         $new_node->save();
 

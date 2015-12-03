@@ -160,8 +160,7 @@ class BraftonFeedLoader {
       }
       // if byline is chosen but doesn't exist, choose first user.
       else {
-          //do not hard code for use id 1, as it may be deleted set to a anonomys author which i beleive if the same from durpal 7 is 0 but you should double check that.
-        $author_id = 1;
+        $author_id = 0;
       }
     }
     $this->errors->set_section($loop_section);

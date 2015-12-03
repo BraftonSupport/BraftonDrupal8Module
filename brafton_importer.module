@@ -14,24 +14,22 @@
  */
 function brafton_importer_cron() {
 
-//  $queue = \Drupal::queue('brafton_cron');
-
-//  \Drupal\brafton_importer\BraftonImporterService::createBraftonArticle();
-
-//  \Drupal::service('brafton_importer.brafton_importer_service')->createBraftonArticle();
-
     $config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
 
     if ($config->get('brafton_importer.brafton_general_switch')) {
 
       if($config->get('brafton_importer.brafton_article_switch')) {
-        $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
-        $article_loader->run_article_loop(null);
+      //  $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
+      //  $article_loader->run_article_loop(null);
+        $controller = new \Drupal\brafton_importer\Controller\BraftonImporterController();
+        $controller->import_articles(null);
       }
 
       if($config->get('brafton_importer.brafton_video_switch')) {
-        $video_loader = new \Drupal\brafton_importer\Model\BraftonVideoLoader();
-        $video_loader->run_video_loop();
+      //  $video_loader = new \Drupal\brafton_importer\Model\BraftonVideoLoader();
+      //  $video_loader->run_video_loop();
+        $controller = new \Drupal\brafton_importer\Controller\BraftonImporterController();
+        $controller->import_videos();
       }
 
     }

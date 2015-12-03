@@ -24,6 +24,16 @@ class BraftonImporterController extends ControllerBase {
     return $form;
   }
 
+  public function import_articles($archive_url) {
+    $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
+    $article_loader->import_articles($archive_url);
+  }
+
+  public function import_videos() {
+    $video_loader = new \Drupal\brafton_importer\Model\BraftonVideoLoader();
+    $video_loader->import_videos();
+  }
+
 }
 
 ?>

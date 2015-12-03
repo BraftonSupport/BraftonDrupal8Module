@@ -7,3 +7,5 @@
 - Children categories
 
 - Default categories
+
+- In form file, make brafton_config a class property to avoid calling it multiple times?

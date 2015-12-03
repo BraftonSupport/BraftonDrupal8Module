@@ -23,17 +23,12 @@ class BraftonForm extends ConfigFormBase {
    */
   public function get_errors() {
     $config = $this->config('brafton_importer.settings');
-  // $config->set('brafton_importer.brafton_e_log', '');
     $errors = $config->get('brafton_importer.brafton_e_log');
     $string = '';
     if (is_array($errors)) {
       $errors = array_reverse($errors);
       foreach ($errors as $error) {
-
-      //  $trace_array = unserialize($error['trace']);
-      // $trace_message = print_r($trace_array, true);
-
-        $string .= $error['client_sys_time'] . ': ' . $error['error'] . '<br/> Trace: ' . $error['trace'] . '<br><br>';
+        $string .= $error['client_sys_time'] . ': ' . $error['error'] . '<br><br>';
       }
     }
     else {
@@ -58,8 +53,11 @@ class BraftonForm extends ConfigFormBase {
    * @return void
    */
   static function manual_import_articles() {
-    $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
-    $article_loader->import_articles(null);
+  //  $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
+  //  $article_loader->import_articles(null);
+
+    $controller = new \Drupal\brafton_importer\Controller\BraftonImporterController();
+    $controller->import_articles(null);
   }
 
   /**
@@ -77,8 +75,12 @@ class BraftonForm extends ConfigFormBase {
     $file_uri = $file->getFileUri();
     $file_url = drupal_realpath($file_uri);
 
-    $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
-    $article_loader->import_articles($file_url);
+  //  $article_loader = new \Drupal\brafton_importer\Model\BraftonArticleLoader();
+  //  $article_loader->import_articles($file_url);
+
+    $controller = new \Drupal\brafton_importer\Controller\BraftonImporterController();
+    $controller->import_articles($file_url);
+
   }
 
   /**
@@ -87,8 +89,12 @@ class BraftonForm extends ConfigFormBase {
    * @return void
    */
   static function manual_import_videos() {
-    $video_loader = new \Drupal\brafton_importer\Model\BraftonVideoLoader();
-    $video_loader->import_videos();
+  //  $video_loader = new \Drupal\brafton_importer\Model\BraftonVideoLoader();
+  //  $video_loader->import_videos();
+
+    $controller = new \Drupal\brafton_importer\Controller\BraftonImporterController();
+    $controller->import_videos();
+
   }
 
   /**
@@ -439,10 +445,19 @@ class BraftonForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    *
-   * Adds validation 
-   * @ToDo : create validation check for status of article - ensure api key has been set check for status of video - ensure public and private keys have been set.
+   * Adds validation
    */
-  public function validateForm(array &$form, FormStateInterface $form_state) {  }
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    if ($form_state->getValue('brafton_general_switch') && $form_state->getValue('brafton_article_switch') && strlen($form_state->getValue('brafton_api_key')) != 36) {
+      $form_state->setErrorByName('brafton_api_key', $this->t('This is not a valid API key.'));
+    }
+    if ($form_state->getValue('brafton_general_switch') && $form_state->getValue('brafton_video_switch') && empty($form_state->getValue('brafton_video_public_key')) ) {
+      $form_state->setErrorByName('brafton_video_public_key', $this->t('This is not a valid public key.'));
+    }
+    if ($form_state->getValue('brafton_general_switch') && $form_state->getValue('brafton_video_switch') && empty($form_state->getValue('brafton_video_private_key')) ) {
+      $form_state->setErrorByName('brafton_video_private_key', $this->t('This is not a valid private key.'));
+    }
+  }
 
 
 
