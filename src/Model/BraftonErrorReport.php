@@ -296,6 +296,7 @@ class BraftonErrorReport {
                 'Brand'     => $this->brand,
                 'client_sys_time'  => date('Y-m-d H:i:s'),
                 'error'     => get_class($e).' : '.$errorLevel.' | '.$e->getMessage().' in '.$e->getFile().' on line '.$e->getLine().' brafton_level '.$this->level.' in section '.$this->section,
+            //    'trace'     => $e->getTraceAsString,
             );
             $brafton_error[] = $errorlog;
             $brafton_error = $brafton_error;

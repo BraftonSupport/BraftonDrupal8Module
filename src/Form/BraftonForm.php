@@ -29,6 +29,10 @@ class BraftonForm extends ConfigFormBase {
       $errors = array_reverse($errors);
       foreach ($errors as $error) {
         $string .= $error['client_sys_time'] . ': ' . $error['error'] . '<br><br>';
+        if (array_key_exists('trace', $error)) {
+          $string .= $error['trace'] . '<br><br>';
+        }
+
       }
     }
     else {
