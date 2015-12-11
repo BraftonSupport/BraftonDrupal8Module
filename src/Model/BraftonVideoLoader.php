@@ -33,7 +33,6 @@ class BraftonVideoLoader extends BraftonFeedLoader {
   protected $categories;
   protected $video_date_setting;
   protected $video_author_id;
-  protected $cta_option;
   protected $pause_cta_text;
   protected $end_cta_title;
   protected $end_cta_subtitle;
@@ -53,10 +52,7 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     $this->photo_url = 'http://pictures.' . $this->domain . '/v2/';
     $this->video_date_setting = $this->brafton_config->get('brafton_importer.brafton_video_publish_date');
     $this->video_author_id = $this->brafton_config->get('brafton_importer.brafton_video_author');
-    $this->cta_option = $this->brafton_config->get('brafton_importer.brafton_cta_switch');
-    if($this->cta_option){
-        $this->get_cta_info();
-    }
+    $this->get_cta_info();
   }
 
   /**
@@ -247,43 +243,79 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     $script .='id: "video-' . $brafton_id . '"';
 
     // CTA stuff here
-    if($this->cta_option){
-      $marpro = '';
-      if($this->pause_asset_id != ''){
-          $marpro = "assetGateway: { id: '$this->pause_asset_id' },";
-      }
-      $endingBackground = '';
-      if($this->end_background_image_url != ''){
-          $end_background_image_url_2 = file_create_url($this->end_background_image_url);
-          $endingBackground = "background: '$end_background_image_url_2',";
-      }
-      if($this->end_asset_id != ''){
-          $endingBackground .= "assetGateway: { id: '$this->end_asset_id' },";
-      }
-      $buttonImage = '';
-      if($this->button_image_url != ''){
-          $button_image_url_2 = file_create_url($this->button_image_url);
-          $buttonImage = "image: '$button_image_url_2',";
-      }
+    $marpro = '';
+    if($this->pause_asset_id != ''){
+        $marpro = "assetGateway: { id: '$this->pause_asset_id' },";
+    }
+    $endingBackground = '';
+    if($this->end_background_image_url != ''){
+        $end_background_image_url_2 = file_create_url($this->end_background_image_url);
+        $endingBackground = "background: '$end_background_image_url_2',";
+    }
+    if($this->end_asset_id != ''){
+        $endingBackground .= "assetGateway: { id: '$this->end_asset_id' },";
+    }
+    $buttonImage = '';
+    if($this->button_image_url != ''){
+        $button_image_url_2 = file_create_url($this->button_image_url);
+        $buttonImage = "image: '$button_image_url_2',";
+    }
 
-      $script .=',';
+    $script .=',';
+    $script .= <<<EOT
+        pauseCallToAction: {
+                      $marpro
+EOT;
+    if (!empty($this->pause_cta_text)) {
       $script .= <<<EOT
-          pauseCallToAction: {
-                        $marpro
-                        link: "$this->pause_cta_link",
-              text: "$this->pause_cta_text"
-          },
-          endOfVideoOptions: {
-                        $endingBackground
+            link: "$this->pause_cta_link",
+            text: "$this->pause_cta_text"
+EOT;
+    }
+    $script .= <<<EOT
+        },
+
+EOT;
+    debug($endingBackground . $this->end_cta_title . $this->end_cta_subtitle . $this->end_cta_link . $this->end_cta_text . $buttonImage);
+    if (!empty($endingBackground . $this->end_cta_title . $this->end_cta_subtitle . $this->end_cta_link . $this->end_cta_text . $buttonImage)) {
+      $script .= <<<EOT
+        endOfVideoOptions: {
+                      $endingBackground
+EOT;
+      if (!empty($this->end_cta_title . $this->end_cta_subtitle . $this->end_cta_link . $this->end_cta_text . $buttonImage)) {
+        $script .= <<<EOT
               callToAction: {
-                  title: "$this->end_cta_title",
-                  subtitle: "$this->end_cta_subtitle",
-                  button: {
-                      link: "$this->end_cta_link",
-                      text: "$this->end_cta_text",
-                      $buttonImage
-                  }
-              }
+EOT;
+        if (!empty($this->end_cta_title)) {
+        $script .= <<<EOT
+                    title: "$this->end_cta_title",
+EOT;
+        }
+        if (!empty($this->end_cta_subtitle)) {
+        $script .= <<<EOT
+                    subtitle: "$this->end_cta_subtitle",
+EOT;
+        }
+        if (!empty($this->end_cta_link . $this->end_cta_text . $buttonImage)) {
+          $script .= <<<EOT
+                    button: {
+EOT;
+          if (!empty($this->end_cta_text)) {
+          $script .= <<<EOT
+                          link: "$this->end_cta_link",
+                          text: "$this->end_cta_text",
+EOT;
+          }
+          $script .= <<<EOT
+                          $buttonImage
+                      }
+EOT;
+        }
+        $script .= <<<EOT
+                }
+EOT;
+      }
+      $script .= <<<EOT
           }
 EOT;
     }
