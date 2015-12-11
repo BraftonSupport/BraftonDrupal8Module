@@ -299,72 +299,67 @@ class BraftonForm extends ConfigFormBase {
       ),
       '#default_value' => $config->get('brafton_importer.brafton_video_atlantis_switch'),
     );
-    $form['brafton_video_options']['brafton_cta_switch'] = array(
-      '#type' => 'radios',
-      '#title' => t('CTA switch'),
-      '#description' => t('Import video articles with CTAs or without.'),
-      '#options' => array(
-        1 => t('On'),
-        0 => t('Off')
-      ),
-      '#default_value' => $config->get('brafton_importer.brafton_cta_switch'),
+
+    $form['brafton_cta_options'] = array(
+      '#type' => 'details',
+      '#title' => 'Video CTA Options',
     );
-    $form['brafton_video_options']['brafton_video_pause_cta_text'] = array(
+    $form['brafton_cta_options']['brafton_video_pause_cta_text'] = array(
       '#type' => 'textfield',
       '#title' => t( 'Atlantis Pause CTA Text' ),
       '#description' => t( 'Default video pause cta text every article imports' ),
       '#default_value' => $config->get( 'brafton_importer.brafton_video_pause_cta_text')
     );
-    $form['brafton_video_options']['brafton_video_pause_cta_link'] = array(
+    $form['brafton_cta_options']['brafton_video_pause_cta_link'] = array(
         '#type' => 'textfield',
         '#title'    => t('Atlantis Pause Link'),
         '#description'  => t('Default video pause cta link'),
         '#default_value'   => $config->get('brafton_importer.brafton_video_pause_cta_link'),
     );
-    $form['brafton_video_options']['brafton_video_pause_cta_asset_gateway_id'] = array(
+    $form['brafton_cta_options']['brafton_video_pause_cta_asset_gateway_id'] = array(
         '#type' => 'textfield',
         '#title'    => t('Pause Asset Gateway ID'),
         '#description'  => t('Asset Gateay Form ID. disables pause link url'),
         '#default_value'   => $config->get('brafton_importer.brafton_video_pause_cta_asset_gateway_id'),
     );
-    $form['brafton_video_options']['brafton_video_end_cta_title'] = array(
+    $form['brafton_cta_options']['brafton_video_end_cta_title'] = array(
       '#type' => 'textfield',
       '#title' => t( 'Atlantis End CTA Title' ),
       '#description' => t( 'Default video end cta title every article imports' ),
       '#default_value' => $config->get('brafton_importer.brafton_video_end_cta_title'),
     );
-    $form['brafton_video_options']['brafton_video_end_cta_subtitle'] = array(
+    $form['brafton_cta_options']['brafton_video_end_cta_subtitle'] = array(
       '#type' => 'textfield',
       '#title' => t( 'Atlantis End CTA Subtitle' ),
       '#description' => t( 'Default video end cta subtitle every article imports' ),
       '#default_value' => $config->get( 'brafton_importer.brafton_video_end_cta_subtitle'),
     );
-    $form['brafton_video_options']['brafton_video_end_cta_link'] = array(
+    $form['brafton_cta_options']['brafton_video_end_cta_link'] = array(
       '#type' => 'textfield',
       '#title' => t( 'Atlantis End CTA Link' ),
       '#description' => t( 'Default video end cta link every article imports. Requires http://' ),
       '#default_value' => $config->get( 'brafton_importer.brafton_video_end_cta_link'),
     );
-    $form['brafton_video_options']['brafton_video_end_cta_asset_gateway_id'] = array(
+    $form['brafton_cta_options']['brafton_video_end_cta_asset_gateway_id'] = array(
         '#type' => 'textfield',
         '#title'    => t('End Asset Gateway ID'),
         '#description'  => t('Asset Gateay Form ID. disables end link url'),
         '#default_value'   => $config->get('brafton_importer.brafton_video_end_cta_asset_gateway_id'),
     );
-    $form['brafton_video_options']['brafton_video_end_cta_text'] = array(
+    $form['brafton_cta_options']['brafton_video_end_cta_text'] = array(
       '#type' => 'textfield',
       '#title' => t( 'Atlantis End CTA Text' ),
       '#description' => t( 'Default video end cta text every article imports' ),
       '#default_value' => $config->get( 'brafton_importer.brafton_video_end_cta_text'),
     );
-    $form['brafton_video_options']['brafton_video_end_cta_button_image'] = array(
+    $form['brafton_cta_options']['brafton_video_end_cta_button_image'] = array(
         '#type' => 'managed_file',
         '#title' => t( 'Ending CTA Button Image' ),
         '#description' => '<span class="actual_description">This is Optional and wil override the end cta text </span>',
         '#upload_location'  => 'public://',
         '#default_value'    => $config->get('brafton_importer.brafton_video_end_cta_button_image'),
     );
-    $form['brafton_video_options']['brafton_video_end_cta_background'] = array(
+    $form['brafton_cta_options']['brafton_video_end_cta_background'] = array(
         '#type' => 'managed_file',
         '#title' => t( 'Ending Background Image' ),
         '#description' => '<span class="actual_description">This is Optional</span>',
@@ -504,6 +499,9 @@ class BraftonForm extends ConfigFormBase {
       $config->set('brafton_importer.' . $field, $form_state->getValue($field));
     }
     foreach( $form['brafton_video_options'] as $field => $field_value ) {
+      $config->set('brafton_importer.' . $field, $form_state->getValue($field));
+    }
+    foreach( $form['brafton_cta_options'] as $field => $field_value ) {
       $config->set('brafton_importer.' . $field, $form_state->getValue($field));
     }
     foreach( $form['brafton_error_options'] as $field => $field_value ) {
