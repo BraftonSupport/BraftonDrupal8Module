@@ -1,0 +1,6 @@
+{
+    "name": "drupal/brafton_importer",
+    "description": "This is a composer.json for the brafton_importer module.",
+    "type": "drupal-module",
+    "license": "GPL-2.0+"
+}

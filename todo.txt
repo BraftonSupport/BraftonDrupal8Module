@@ -1,0 +1,11 @@
+- Make node type and tax type names the same as Drupal 7 for migration.
+
+- Validations on form level (AJAX calls)
+
+- validations on model level - if article importing is ON, and api key is blank, make sure to avoid errors
+
+- Children categories
+
+- Default categories
+
+- In form file, make brafton_config a class property to avoid calling it multiple times?
