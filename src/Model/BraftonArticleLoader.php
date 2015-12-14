@@ -39,6 +39,10 @@ class BraftonArticleLoader extends BraftonFeedLoader{
         $this->errors->set_section('Import Article master method');
         $article_array = $this->get_article_feed($archive_url);
         $this->run_article_loop($article_array);
+
+
+
+
     }
     /**
      * Get the Articles feed using the XML API.

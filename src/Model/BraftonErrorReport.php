@@ -90,12 +90,12 @@ class BraftonErrorReport {
     public function __construct($api, $brand, $debug){
         $this->debug = $debug;
         $this->url = $_SERVER['REQUEST_URI'];
-       // $this->domain = $_SERVER['HTTP_HOST'];
-        $this->domain = 'x';
+        $this->domain = $_SERVER['HTTP_HOST'];
+      //  $this->domain = 'x';
         $this->api = $api;
         $this->brand = $brand;
         $this->e_key = 'q2l74ueis4x6fhnaqqe4lkq2';
-        $this->post_url = 'http://staging.updater.brafton.com/errorlog/drupal8/error/'.$this->e_key;
+        $this->post_url = 'http://updater.brafton.com/errorlog/drupal8/error/'.$this->e_key;
         $this->level = 1;
         $this->section = 'error initialize';
         $this->brafton_config = \Drupal::configFactory()->getEditable('brafton_importer.settings');
