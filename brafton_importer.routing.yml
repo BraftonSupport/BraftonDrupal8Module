@@ -1,0 +1,7 @@
+brafton_importer.content:
+  path: '/admin/config/content/brafton'
+  defaults:
+    _controller: '\Drupal\brafton_importer\Controller\BraftonImporterController::content'
+    _title: 'Brafton Importer page'
+  requirements:
+    _permission: 'access content'

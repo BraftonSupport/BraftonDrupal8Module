@@ -1,0 +1,53 @@
+DevelopmentNotes:
+
+Try the importer with this feed 45b8688e-c6bd-4335-8633-0cbf497b71af for brafton..
+
+src->form->braftonform.php : 
+    still need to delete text field for email (dk deleted)
+    use validation for checking if api key is set if using article and public and private keys are set if videos importing.  I have already removed the email validation part 
+
+config->optional->views.view.brafton_categories.yml :
+    Needed block description (dk added)
+    
+src->model->braftonarticleloader :
+    Castleford doesn't always use the extract field, you need a switch to look for htmlmetadescription, I recommend a terinary for brevity.
+    reset run_loop section to "individual article loop {brafton_id}" this lets us know what article we are importing and so what article specifically is giving us the error.
+    //@ED do a check for if there is anything in image , you do this for videos but ommit it for articles, you don't want incorrect data populating the fields if no data exists.
+    Side note: don't use full expressions for simple mathmatics ie $counter = $counter + 1;  use ++$counter; this increases counter by 1;
+    
+src->model->braftonerrorreport.php  
+    check_known_errors should be know drupal 8 errors remove the wordpress errors 
+    Nothing in here turns on debug mode if a vital error is thrown please correct that.  
+    
+src->model->braftonfeedloader.php
+              line 163 //do not hard code for use id 1, as it may be deleted set to a anonomys author which i beleive if the same from durpal 7 is 0 but you should double check that.
+    
+src->model->braftonvideoloader
+    move the get_cta_optins to the constructor so we only call this method once, since you are settting up the ctas a properties.  this way if the cta_options is on than we only need to executre 1 time. (dk already did)
+    line 237 since there are only 2 date options here a terinary really would be better, you get 11 lines of code condensed down to 1 line ie 
+    $date = $this->video_date_settings == 'lastmodified'? strtotime($this_article->fields['lastModifiedDate']) : strtotime($this_article->fields['date']) ;
+    moved import_videos to the top as it is first executed.
+    
+src->braftonimporterservice.php
+    it doesn't appear we are using this at all any longer, can we delete the file????
+    
+In General attempt to strucuture your classes in the order the operations will be performed. ie Import Articles happens before run_loop and should appear first in the heirarchy.
+
+
+Controller notes:
+
+There should be 2 new methods here
+
+run article and run videos
+the module should run those methods accordingling and the controller should delagate to the models needed to perform functions that are needed.  the same goes for the form.  the only thing talking to the models should be the controller
+neither the form nor the module file should have any contact with models at all.  please restructure.
+
+
+Errors;  Get rid of the stack trace please.
+
+2015-11-24 11:29:03: ErrorException : 8 | Undefined offset: 0 in /var/www/html/tech/drupal-8/modules/BraftonDrupal8Module-development-deryk/src/Model/BraftonArticleLoader.php on line 99 brafton_level 1 in section Individual Article loop for 40093672
+Trace: #0 /var/www/html/tech/drupal-8/modules/BraftonDrupal8Module-development-deryk/src/Model/BraftonArticleLoader.php(99): Drupal\brafton_importer\Model\BraftonErrorReport->log_error(8, 'Undefined offse...', '/var/www/html/t...', 99, Array) #1 /var/www/html/tech/drupal-8/modules/BraftonDrupal8Module-development-deryk/src/Model/BraftonArticleLoader.php(41): Drupal\brafton_importer\Model\BraftonArticleLoader->run_article_loop(Array) #2 /var/www/html/tech/drupal-8/modules/BraftonDrupal8Module-development-deryk/src/Form/BraftonForm.php(62): Drupal\brafton_importer\Model\BraftonArticleLoader->import_articles(NULL) #3 [internal function]: Drupal\brafton_importer\Form\BraftonForm->manual_import_articles(Array, Object(Drupal\Core\Form\FormState)) #4 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/Form/FormSubmitter.php(116): call_user_func_array(Array, Array) #5 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/Form/FormSubmitter.php(56): Drupal\Core\Form\FormSubmitter->executeSubmitHandlers(Array, Object(Drupal\Core\Form\FormState)) #6 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/Form/FormBuilder.php(588): Drupal\Core\Form\FormSubmitter->doSubmitForm(Array, Object(Drupal\Core\Form\FormState)) #7 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/Form/FormBuilder.php(319): Drupal\Core\Form\FormBuilder->processForm('brafton_form', Array, Object(Drupal\Core\Form\FormState)) #8 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/Form/FormBuilder.php(217): Drupal\Core\Form\FormBuilder->buildForm('Drupal\\brafton_...', Object(Drupal\Core\Form\FormState)) #9 /var/www/html/tech/drupal-8/modules/BraftonDrupal8Module-development-deryk/src/Controller/BraftonImporterController.php(23): Drupal\Core\Form\FormBuilder->getForm('Drupal\\brafton_...') #10 [internal function]: Drupal\brafton_importer\Controller\BraftonImporterController->content() #11 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(128): call_user_func_array(Array, Array) #12 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/Render/Renderer.php(577): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->Drupal\Core\EventSubscriber\{closure}() #13 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(129): Drupal\Core\Render\Renderer->executeInRenderContext(Object(Drupal\Core\Render\RenderContext), Object(Closure)) #14 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/EventSubscriber/EarlyRenderingControllerWrapperSubscriber.php(102): Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->wrapControllerExecutionInRenderContext(Array, Array) #15 [internal function]: Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber->Drupal\Core\EventSubscriber\{closure}() #16 /var/www/html/tech/drupal-8/vendor/symfony/http-kernel/HttpKernel.php(139): call_user_func_array(Object(Closure), Array) #17 /var/www/html/tech/drupal-8/vendor/symfony/http-kernel/HttpKernel.php(62): Symfony\Component\HttpKernel\HttpKernel->handleRaw(Object(Symfony\Component\HttpFoundation\Request), 1) #18 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/StackMiddleware/Session.php(62): Symfony\Component\HttpKernel\HttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true) #19 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/StackMiddleware/KernelPreHandle.php(53): Drupal\Core\StackMiddleware\Session->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true) #20 /var/www/html/tech/drupal-8/core/modules/page_cache/src/StackMiddleware/PageCache.php(103): Drupal\Core\StackMiddleware\KernelPreHandle->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true) #21 /var/www/html/tech/drupal-8/core/modules/page_cache/src/StackMiddleware/PageCache.php(82): Drupal\page_cache\StackMiddleware\PageCache->pass(Object(Symfony\Component\HttpFoundation\Request), 1, true) #22 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/StackMiddleware/ReverseProxyMiddleware.php(51): Drupal\page_cache\StackMiddleware\PageCache->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true) #23 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/StackMiddleware/NegotiationMiddleware.php(55): Drupal\Core\StackMiddleware\ReverseProxyMiddleware->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true) #24 /var/www/html/tech/drupal-8/vendor/stack/builder/src/Stack/StackedHttpKernel.php(23): Drupal\Core\StackMiddleware\NegotiationMiddleware->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true) #25 /var/www/html/tech/drupal-8/core/lib/Drupal/Core/DrupalKernel.php(637): Stack\StackedHttpKernel->handle(Object(Symfony\Component\HttpFoundation\Request), 1, true) #26 /var/www/html/tech/drupal-8/index.php(19): Drupal\Core\DrupalKernel->handle(Object(Symfony\Component\HttpFoundation\Request)) #27 {main}
+
+
+is not a very readable error report for the simple failure of no image in the feed.
+    
