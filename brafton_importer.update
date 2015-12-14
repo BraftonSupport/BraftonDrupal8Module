@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * The update file for the brafton_importer module.
+ */
+
+/**
+ * The class wrapper for update methods.
+ */
+class brafton_importer_update {
+
+  public function __construct() {
+    $this->send_tracking_info();
+  }
+
+  /**
+   *
+   */
+  function send_tracking_info() {
+
+    $tracking_url = 'http://updater.brafton.com/register.php';
+    $domain = $_SERVER['HTTP_HOST'];
+    $module_info = system_get_info('module', 'brafton_importer');
+    $version = $module_info['version'];
+    $config = $this->config('brafton_importer.settings');
+    $brand = $config->get('brafton_importer.brafton_api_root');
+    $api = $config->get('brafton_importer.brafton_api_key');
+
+    $info = array(
+      'project' => 'drupal8',
+      'version' => $version,
+      'domain' => $domain,
+      'brand' => $brand,
+      'api' => $api
+    );
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $tracking_url);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $info);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_exec($ch);
+  }
+
+}
+
+
+
+?>

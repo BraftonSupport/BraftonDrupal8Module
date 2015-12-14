@@ -510,6 +510,10 @@ class BraftonForm extends ConfigFormBase {
 
     $config->save();
 
+    $module_info = system_get_info('module', 'brafton_importer');
+    debug($module_info);
+
+
     return parent::submitForm($form, $form_state);
   }
 
