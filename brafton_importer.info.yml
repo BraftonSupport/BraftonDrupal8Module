@@ -2,7 +2,7 @@ name: Brafton Importer Module
 description: Imports Brafton articles from XML feeds.
 package: Custom
 type: module
-version: '1.0.0'
+version: '8.x-1.0.0'
 core: '8.x'
 project: 'brafton_importer'
-project status url: 'http://staging.updater.brafton.com/drupal8'
+project status url: 'http://updater.brafton.com/drupal8'
