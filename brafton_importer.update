@@ -18,7 +18,7 @@ class brafton_importer_update {
    */
   function send_tracking_info() {
 
-    $tracking_url = 'http://updater.brafton.com/register.php';
+    $tracking_url = 'http://updater.brafton.com/register';
     $domain = $_SERVER['HTTP_HOST'];
     $module_info = system_get_info('module', 'brafton_importer');
     $version = $module_info['version'];
